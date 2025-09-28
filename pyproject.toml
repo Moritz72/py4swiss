@@ -1,0 +1,42 @@
+[project]
+name = "py4swiss"
+version = "0.1"
+description = "A package to pair swiss tournaments"
+readme = "README.md"
+authors = [{ name = "Moritz Eckert", email = "MoritzEckert@web.de" }]
+license = "MIT"
+dependencies = []
+classifiers = [
+    "Programming Language :: Python :: 3",
+    "Operating System :: OS Independent"
+]
+
+[project.urls]
+"Homepage" = "https://github.com/Moritz72/py4swiss"
+
+[build-system]
+requires = [
+    "setuptools>=61.0",
+    "pybind11>=2.6.0",
+    "pydantic==2.11.9"
+]
+build-backend = "setuptools.build_meta"
+
+[tool.setuptools]
+packages = ["py4swiss"]
+package-dir = {"" = "src"}
+
+[tool.mypy]
+files = ["src/py4swiss"]
+
+[[tool.mypy.overrides]]
+module = "setuptools"
+ignore_missing_imports = true
+
+[[tool.mypy.overrides]]
+module = "pybind11"
+ignore_missing_imports = true
+
+[[tool.mypy.overrides]]
+module = "pybind11.setup_helpers"
+ignore_missing_imports = true
