@@ -9,7 +9,7 @@ namespace py = pybind11;
 using namespace utility::uinttypes;
 
 PYBIND11_MODULE(dynamicuint, m) {
-    m.doc() = "Python bindings for DynamicUint big unsigned integer";
+    m.doc() = "DynamicUint python bindings";
 
     py::class_<DynamicUint>(m, "DynamicUint")
         // Constructors
@@ -106,12 +106,5 @@ PYBIND11_MODULE(dynamicuint, m) {
         })
 
         // Expose shiftGrow
-        .def("shift_grow", &DynamicUint::shiftGrow<std::size_t>)
-
-        // Copy and set to zero
-        .def("get_empty", [](const DynamicUint &self) {
-            DynamicUint copy = self;
-            copy &= 0u;
-            return copy;
-        });
+        .def("shift_grow", &DynamicUint::shiftGrow<std::size_t>);
 }

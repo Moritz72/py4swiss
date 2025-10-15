@@ -17,17 +17,18 @@ class ResultToken(str, Enum):
     PAIRING_ALLOCATED_BYE = "U"
     ZERO_POINT_BYE = "Z"
 
-    _COMPATIBLE = {
-        (FORFEIT_WIN, FORFEIT_LOSS),
-        (FORFEIT_LOSS, FORFEIT_LOSS),
-        (FORFEIT_LOSS, FORFEIT_WIN),
-        (WIN_NOT_RATED, LOSS_NOT_RATED),
-        (LOSS_NOT_RATED, WIN_NOT_RATED),
-        (DRAW_NOT_RATED, DRAW_NOT_RATED),
-        (WIN, LOSS),
-        (LOSS, WIN),
-        (DRAW, DRAW)
-    }
-
     def is_compatible_with(self, other: ResultToken) -> bool:
-        return (self, other) in self._COMPATIBLE
+        return (self, other) in _COMPATIBLE
+
+
+_COMPATIBLE = {
+    (ResultToken.FORFEIT_WIN, ResultToken.FORFEIT_LOSS),
+    (ResultToken.FORFEIT_LOSS, ResultToken.FORFEIT_LOSS),
+    (ResultToken.FORFEIT_LOSS, ResultToken.FORFEIT_WIN),
+    (ResultToken.WIN_NOT_RATED, ResultToken.LOSS_NOT_RATED),
+    (ResultToken.LOSS_NOT_RATED, ResultToken.WIN_NOT_RATED),
+    (ResultToken.DRAW_NOT_RATED, ResultToken.DRAW_NOT_RATED),
+    (ResultToken.WIN, ResultToken.LOSS),
+    (ResultToken.LOSS, ResultToken.WIN),
+    (ResultToken.DRAW, ResultToken.DRAW)
+}

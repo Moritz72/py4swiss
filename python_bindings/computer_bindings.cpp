@@ -3,7 +3,6 @@
 #include <pybind11/numpy.h>
 #include "matching/computer.h"
 
-// Include the Swiss system headers to get the actual types
 #ifndef OMIT_DUTCH
 #include <swisssystems/dutch.h>
 #endif
@@ -15,10 +14,9 @@
 namespace py = pybind11;
 
 PYBIND11_MODULE(matching_computer, m) {
-    m.doc() = "Maximum matching computer Python bindings";
+    m.doc() = "Matching computer python bindings";
 
 #ifndef OMIT_BURSTEIN
-    // Bind the Burstein matching computer type
     py::class_<matching::Computer<swisssystems::burstein::matching_computer::edge_weight>>(m, "ComputerBurstein")
         .def(py::init<typename matching::Computer<swisssystems::burstein::matching_computer::edge_weight>::size_type,
                       const swisssystems::burstein::matching_computer::edge_weight&>())
@@ -30,7 +28,6 @@ PYBIND11_MODULE(matching_computer, m) {
 #endif
 
 #ifndef OMIT_DUTCH
-    // Bind the Dutch validity matching computer type
     py::class_<matching::Computer<swisssystems::dutch::validity_matching_computer::edge_weight>>(m, "ComputerDutchValidity")
         .def(py::init<typename matching::Computer<swisssystems::dutch::validity_matching_computer::edge_weight>::size_type,
                       const swisssystems::dutch::validity_matching_computer::edge_weight&>())
@@ -40,7 +37,6 @@ PYBIND11_MODULE(matching_computer, m) {
         .def("compute_matching", &matching::Computer<swisssystems::dutch::validity_matching_computer::edge_weight>::computeMatching)
         .def("get_matching", &matching::Computer<swisssystems::dutch::validity_matching_computer::edge_weight>::getMatching);
 
-    // Bind the Dutch optimality matching computer type
     py::class_<matching::Computer<swisssystems::dutch::optimality_matching_computer::edge_weight>>(m, "ComputerDutchOptimality")
         .def(py::init<typename matching::Computer<swisssystems::dutch::optimality_matching_computer::edge_weight>::size_type,
                       const swisssystems::dutch::optimality_matching_computer::edge_weight&>())

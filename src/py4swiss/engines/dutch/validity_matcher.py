@@ -1,55 +1,70 @@
-from py4swiss.engines.common import ColorPreferenceStrength
-from py4swiss.engines.dutch.player_info import PlayerInfo
+from py4swiss.engines.dutch.criteria.absolute import C1, C2, C3
+from py4swiss.engines.dutch.player import Player
 from py4swiss.matching_computer import ComputerDutchValidity
 
 
 class ValidityMatcher:
-    def __init__(self, player_list: list[PlayerInfo]) -> None:
-        self.player_list: list[PlayerInfo] = player_list
-        self.num: int = len(player_list)
-        self.computer: ComputerDutchValidity = ComputerDutchValidity(len(self), 1)
+    """
+    A class used to determines whether the current choice of pairings and thus moved down players
+    allows completion of the round-pairing.
+    """
 
-        self.index_dict: dict[PlayerInfo, int] = {player: i for i, player in enumerate(self.player_list)}
-        self.index_dict_reverse: dict[int, PlayerInfo] = {i: player for i, player in enumerate(self.player_list)}
+    def __init__(self, players: list[Player]) -> None:
+        """
+        Initializes the `ValidityMatcher`.
 
-        for _ in range(len(self)):
-            self.computer.add_vertex()
+        The `ValidityMatcher` sets up a matching computer with one vertex for each player and edges
+        with weights between them depending on whether they are allowed to be paired with each
+        other or not.
+        """
+        self._players: list[Player] = players
+        self._len: int = len(players) + len(players) % 2
+        self._computer: ComputerDutchValidity = ComputerDutchValidity(self._len, 1)
+        self._index_dict: dict[Player, int] = {player: i for i, player in enumerate(self._players)}
 
-        for i, player_1 in enumerate(self.player_list):
-            for j, player_2 in enumerate(self.player_list[i + 1:]):
-                self.computer.set_edge_weight(i, i + j + 1, int(self.is_allowed_pairing(player_1, player_2)))
+        self._set_up_computer()
 
-        if self.num % 2 == 1:
-            for i, player in enumerate(self.player_list):
-                self.computer.set_edge_weight(i, self.num, not int(player.bye_received))
+    def _set_up_computer(self) -> None:
+        """
+        Configures the matching computer by setting up vertices and edge weights.
 
-    def __len__(self) -> int:
-        return self.num + (self.num % 2)
+        Each vertex represents a player (and potentially an extra one for a bye if needed).
+        Edge weights are determined by the validity of pairings according to the absolute criteria
+        C.1, C.2, and C.3:
+            - 1 if the pairing between two players is allowed
+            - 0 if it violates any absolute criteria
+        """
+        for _ in range(self._len):
+            self._computer.add_vertex()
 
-    @staticmethod
-    def is_allowed_pairing(player_1: PlayerInfo, player_2: PlayerInfo) -> bool:
-        # C.1
-        if player_1.number in player_2.opponents:
-            return False
+        for i, player_1 in enumerate(self._players):
+            for j, player_2 in enumerate(self._players[i + 1:]):
+                allowed = C1.evaluate(player_1, player_2) and C3.evaluate(player_1, player_2)
+                self._computer.set_edge_weight(i, i + j + 1, int(allowed))
 
-        # C.3
-        topscorer = player_1.top_scorer or player_2.top_scorer
-        same_preference = player_1.color_preference.side == player_2.color_preference.side
-        absolute_1 = player_1.color_preference.strength == ColorPreferenceStrength.ABSOLUTE
-        absolute_2 = player_2.color_preference.strength == ColorPreferenceStrength.ABSOLUTE
-        if not topscorer and same_preference and absolute_1 and absolute_2:
-            return False
+        if len(self._players) % 2 == 1:
+            for i, player in enumerate(self._players):
+                allowed = C2.evaluate(player, player)
+                self._computer.set_edge_weight(i, len(self._players), int(allowed))
 
-        return True
+    def finalize_match(self, player_1: Player, player_2: Player) -> None:
+        """
+        Finalizes the fact that two players will be paired with one another by removing all other
+        edge weights from the corresponding vertices in the matching computer.
+        """
+        i = self._index_dict[player_1]
+        j = self._index_dict[player_2]
+
+        for k in range(self._len):
+            self._computer.set_edge_weight(i, k, 0)
+            self._computer.set_edge_weight(j, k, 0)
+
+        self._computer.set_edge_weight(i, j, 1)
 
     def is_valid_matching(self) -> bool:
-        self.computer.compute_matching()
-        return all(i != j for i, j in enumerate(self.computer.get_matching()))
-
-    def finalize_match(self, player: PlayerInfo, opponent: PlayerInfo) -> None:
-        i = self.index_dict[player]
-        j = self.index_dict[opponent]
-        for k in range(len(self)):
-            self.computer.set_edge_weight(i, k, 0)
-            self.computer.set_edge_weight(j, k, 0)
-        self.computer.set_edge_weight(i, j, 1)
+        """
+        Checks whether the current edge weights allow for a full pairing of all players whilst
+        adhering to the absolute criteria C.1, C.2, and C.3.
+        """
+        self._computer.compute_matching()
+        return all(i != j for i, j in enumerate(self._computer.get_matching()))

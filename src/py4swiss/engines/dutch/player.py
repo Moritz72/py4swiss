@@ -2,7 +2,6 @@ from __future__ import annotations
 
 from enum import Enum
 from functools import total_ordering
-from typing import Self
 
 from pydantic import BaseModel
 
@@ -19,7 +18,7 @@ class PlayerRole(int, Enum):
 
 
 @total_ordering
-class PlayerInfo(BaseModel):
+class Player(BaseModel):
     number: int
     points: int
     color_preference: ColorPreference
@@ -34,36 +33,19 @@ class PlayerInfo(BaseModel):
 
     role: PlayerRole = PlayerRole.RESIDENT
 
-    def __lt__(self, other: PlayerInfo) -> bool:
+    def __lt__(self, other: Player) -> bool:
         return (self.points, -self.number) < (other.points, -other.number)
 
-    def __le__(self, other: PlayerInfo) -> bool:
+    def __le__(self, other: Player) -> bool:
         return (self.points, -self.number) <= (other.points, -other.number)
 
     def __eq__(self, other: object) -> bool:
-        if not isinstance(other, PlayerInfo):
+        if not isinstance(other, Player):
             return False
         return (self.points, -self.number) == (other.points, -other.number)
 
     def __hash__(self) -> int:
         return self.number
-
-    @classmethod
-    def get_dummy(cls) -> Self:
-        return cls(
-            number=999,
-            points=0,
-            color_preference=ColorPreference(side=ColorPreferenceSide.NONE, strength=ColorPreferenceStrength.NONE),
-            color_difference=0,
-            color_double=False,
-            float_1=Float.NONE,
-            float_2=Float.NONE,
-            opponents=set(),
-            colors=[],
-            bye_received=False,
-            top_scorer=False,
-            role=PlayerRole.LOWER
-        )
 
 
 def _get_points_list(player_section: PlayerSection, x_section: XSection) -> list[int]:
@@ -136,8 +118,8 @@ def _get_floats(player_section: PlayerSection, round_number: int, points_list_di
     return Float.NONE
 
 
-def get_player_infos_from_trf(trf: ParsedTrf) -> list[PlayerInfo]:
-    player_infos = []
+def get_player_infos_from_trf(trf: ParsedTrf) -> list[Player]:
+    players = []
     sections = trf.player_sections
     points_list_dict = {
         player.starting_number: _get_points_list(player, trf.x_section)
@@ -146,25 +128,25 @@ def get_player_infos_from_trf(trf: ParsedTrf) -> list[PlayerInfo]:
 
     round_number = min(len(player.results) for player in sections)
     max_score = trf.x_section.score_point_system.get_max() * round_number
-    last_round = round_number == trf.x_section.number_of_rounds - 1
+    last_round = round_number == (trf.x_section.number_of_rounds or 0) - 1
     sections = [player for player in sections if len(player.results) == round_number]
     sections = [player for player in sections if player.starting_number not in trf.x_section.zeroed_ids]
 
-    for player in sections:
-        assert player.starting_number is not None
+    for player_section in sections:
+        assert player_section.starting_number is not None
 
-        color_preference, color_difference, color_double = _get_color_preference(player)
-        float_1 = _get_floats(player, round_number - 1, points_list_dict)
-        float_2 = _get_floats(player, round_number - 2, points_list_dict)
+        color_preference, color_difference, color_double = _get_color_preference(player_section)
+        float_1 = _get_floats(player_section, round_number - 1, points_list_dict)
+        float_2 = _get_floats(player_section, round_number - 2, points_list_dict)
 
-        opponents = {result.id for result in player.results}
-        colors = [result.color.to_bool() for result in player.results]
+        opponents = {result.id for result in player_section.results}
+        colors = [result.color.to_bool() for result in player_section.results]
         bye_received = 0 in opponents
         opponents.discard(0)
 
-        player_info = PlayerInfo(
-            number=player.starting_number,
-            points=points_list_dict[player.starting_number][-1],
+        player = Player(
+            number=player_section.starting_number,
+            points=points_list_dict[player_section.starting_number][-1],
             color_preference=color_preference,
             color_difference=color_difference,
             color_double=color_double,
@@ -173,8 +155,8 @@ def get_player_infos_from_trf(trf: ParsedTrf) -> list[PlayerInfo]:
             opponents=opponents,
             colors=colors,
             bye_received=bye_received,
-            top_scorer=last_round and (points_list_dict[player.starting_number][-1] > max_score / 2)
+            top_scorer=last_round and (points_list_dict[player_section.starting_number][-1] > max_score / 2)
         )
-        player_infos.append(player_info)
+        players.append(player)
 
-    return player_infos
+    return players
