@@ -4,6 +4,25 @@ from py4swiss.trf.exceptions import LineException
 
 
 class TournamentSection(BaseModel):
+    """
+    Representation of a parsed tournament section of a TRF.
+
+    Attributes:
+        tournament_name (str | None)
+        city (str | None)
+        federation (str | None)
+        date_of_start (str | None)
+        date_of_end (str | None)
+        number_of_players (str | None)
+        number_of_rated_players (str | None)
+        number_of_teams (str | None)
+        type_of_tournament (str | None)
+        chief_arbiter (str | None)
+        deputy_chief_arbiter (str | None)
+        alloted_time_per_moves_game (str | None)
+        dates_of_the_round (list[tuple[int, int, int]] | None)
+    """
+
     tournament_name: str | None = None
     city: str | None = None
     federation: str | None = None
@@ -23,9 +42,9 @@ class TournamentSection(BaseModel):
 
         for i in range(91, len(line), 8):
             try:
-                section = line[i:i+8]
-            except IndexError:
-                raise LineException(f"Incomplete dates of the round line '{line}'")
+                section = line[i : i + 8]
+            except IndexError as e:
+                raise LineException(f"Incomplete dates of the round line '{line}'") from e
 
             try:
                 if bool(section.strip()):
@@ -33,5 +52,5 @@ class TournamentSection(BaseModel):
                     month = int(section[5:7].strip() or 0)
                     day = int(section[8:10].strip() or 0)
                     self.dates_of_the_round.append((year, month, day))
-            except ValueError:
-                raise LineException(f"Invalid round date '{section}'", column=i)
+            except ValueError as e:
+                raise LineException(f"Invalid round date '{section}'", column=i) from e

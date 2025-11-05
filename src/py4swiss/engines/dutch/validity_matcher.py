@@ -5,7 +5,7 @@ from py4swiss.matching_computer import ComputerDutchValidity
 
 class ValidityMatcher:
     """
-    A class used to determines whether the current choice of pairings and thus moved down players
+    A class used to determine whether the current choice of pairings and thus moved down players
     allows completion of the round-pairing.
     """
 
@@ -38,7 +38,7 @@ class ValidityMatcher:
             self._computer.add_vertex()
 
         for i, player_1 in enumerate(self._players):
-            for j, player_2 in enumerate(self._players[i + 1:]):
+            for j, player_2 in enumerate(self._players[i + 1 :]):
                 allowed = C1.evaluate(player_1, player_2) and C3.evaluate(player_1, player_2)
                 self._computer.set_edge_weight(i, i + j + 1, int(allowed))
 

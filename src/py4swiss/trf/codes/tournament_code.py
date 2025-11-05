@@ -2,6 +2,8 @@ from enum import Enum
 
 
 class TournamentCode(str, Enum):
+    """Enum for tournament codes."""
+
     TOURNAMENT_NAME = "012"
     CITY = "022"
     FEDERATION = "032"
@@ -10,7 +12,7 @@ class TournamentCode(str, Enum):
     NUMBER_OF_PLAYERS = "062"
     NUMBER_OF_RATED_PLAYERS = "072"
     NUMBER_OF_TEAMS = "082"
-    TYPE_OF_TOURNAMENT = "092",
+    TYPE_OF_TOURNAMENT = ("092",)
     CHIEF_ARBITER = "102"
     DEPUTY_CHIEF_ARBITER = "112"
     ALLOTTED_TIMES_PER_GAME_MOVE = "122"

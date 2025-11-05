@@ -2,6 +2,8 @@ from enum import Enum
 
 
 class ScoringPointSystemCode(str, Enum):
+    """Enum for codes to define a scoring system as defined by javafo."""
+
     WIN_WITH_WHITE = "WW"
     WIN_WITH_BLACK = "BW"
     DRAW_WITH_WHITE = "WD"

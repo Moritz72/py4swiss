@@ -6,9 +6,18 @@ from py4swiss.trf.results.result_token import ResultToken
 from py4swiss.trf.results.round_result import RoundResult
 from py4swiss.trf.results.scoring_point_system_code import ScoringPointSystemCode as C
 
+ScoreDict = dict[tuple[ResultToken, ColorToken], int]
+
 
 class ScoringPointSystem(BaseModel):
-    score_dict: dict[tuple[ResultToken, ColorToken], int] = {
+    """
+    A scoring system for a tournament supporting all javafo defined codes.
+
+    Attributes:
+        score_dict (ScoreDict): The number of points times 10 awarded for pairs of result tokens
+    """
+
+    score_dict: ScoreDict = {
         (ResultToken.FORFEIT_LOSS, ColorToken.WHITE): 0,
         (ResultToken.FORFEIT_WIN, ColorToken.WHITE): 10,
         (ResultToken.WIN_NOT_RATED, ColorToken.WHITE): 10,
@@ -28,10 +37,30 @@ class ScoringPointSystem(BaseModel):
         (ResultToken.HALF_POINT_BYE, ColorToken.BYE_OR_NOT_PAIRED): 5,
         (ResultToken.FULL_POINT_BYE, ColorToken.BYE_OR_NOT_PAIRED): 10,
         (ResultToken.PAIRING_ALLOCATED_BYE, ColorToken.BYE_OR_NOT_PAIRED): 10,
-        (ResultToken.ZERO_POINT_BYE, ColorToken.BYE_OR_NOT_PAIRED): 0
+        (ResultToken.ZERO_POINT_BYE, ColorToken.BYE_OR_NOT_PAIRED): 0,
     }
 
     def apply_code(self, code: C, points_times_ten: int) -> None:
+        """
+        Update the score dict entry for all pairs covered by the given code to the given number of
+        points times 10.
+        """
+        # javafo Advanced User Manual
+        # WW  | 1.0 | points for win with White
+        # BW  | 1.0 | points for win with Black
+        # WD  | 0.5 | points for draw with White
+        # BD  | 0.5 | points for draw with Black
+        # WL  | 0.0 | points for loss with White
+        # BL  | 0.0 | points for loss with Black
+        # ZPB | 0.0 | points for zero-point-bye
+        # HPB | 0.5 | points for half-point-bye
+        # FPB | 1.0 | points for full-point-bye
+        # PAB | 1.0 | points for pairing-allocated-bye
+        # FW  | 1.0 | points for forfeit win
+        # FL  | 0.0 | points for forfeit loss
+        # W   | 1.0 | encompasses all the codes WW, BW, FW, FPB
+        # D   | 0.5 | encompasses all the codes WD, BD, HPB
+        # L   | 0.0 | encompasses all the codes WL, BL, ZPB, FL (not supported by javafo)
         match code:
             case C.WIN_WITH_WHITE:
                 self.score_dict[(ResultToken.WIN_NOT_RATED, ColorToken.WHITE)] = points_times_ten
@@ -89,17 +118,21 @@ class ScoringPointSystem(BaseModel):
                 self.score_dict[(ResultToken.ZERO_POINT_BYE, ColorToken.BYE_OR_NOT_PAIRED)] = points_times_ten
 
     def get_points_times_ten(self, round_result: RoundResult) -> int:
+        """Return the number of points times 10 awarded for a round result of a player."""
         color = round_result.color
         result = round_result.result
+
         try:
             return self.score_dict[(result, color)]
-        except IndexError:
-            raise ConsistencyException(f"Color '{color.value}' does not match result {result.value}")
+        except IndexError as e:
+            raise ConsistencyException(f"Color '{color.value}' does not match result {result.value}") from e
 
     def get_max(self) -> int:
+        """Return the maximum amount of points times ten among all possible pairs of result tokens."""
         return max(self.score_dict.values())
 
     def to_string(self) -> str:
+        """Return a TRF(x) conform string representation of the instance."""
         value_dict = {
             C.WIN_WITH_WHITE: self.score_dict[(ResultToken.WIN, ColorToken.WHITE)],
             C.WIN_WITH_BLACK: self.score_dict[(ResultToken.WIN, ColorToken.BLACK)],
@@ -112,7 +145,8 @@ class ScoringPointSystem(BaseModel):
             C.FULL_POINT_BYE: self.score_dict[(ResultToken.FULL_POINT_BYE, ColorToken.BYE_OR_NOT_PAIRED)],
             C.PAIRING_ALLOCATED_BYE: self.score_dict[(ResultToken.PAIRING_ALLOCATED_BYE, ColorToken.BYE_OR_NOT_PAIRED)],
             C.FORFEIT_WIN: self.score_dict[(ResultToken.FORFEIT_WIN, ColorToken.WHITE)],
-            C.FORFEIT_LOSS: self.score_dict[(ResultToken.FORFEIT_LOSS, ColorToken.WHITE)]
+            C.FORFEIT_LOSS: self.score_dict[(ResultToken.FORFEIT_LOSS, ColorToken.WHITE)],
         }
+
         parts = [f"{code.value}={round(points_times_ten / 10, 1)}" for code, points_times_ten in value_dict.items()]
         return " ".join(parts)

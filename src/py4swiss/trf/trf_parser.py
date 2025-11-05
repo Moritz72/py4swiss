@@ -7,10 +7,11 @@ from py4swiss.trf.sections import PlayerSection, TeamSection
 
 
 class TrfParser:
-    _parsed: ParsedTrf = ParsedTrf()
+    """Parser for TRF(x) files as defined by FIDE and javafo."""
 
     @staticmethod
     def _parse_line_player(trf: ParsedTrf, _: PlayerCode, line: str) -> None:
+        """Parse a line containing a player code (xx1)."""
         if len(line) < 89:
             raise LineException("Player section line is incomplete")
 
@@ -28,7 +29,7 @@ class TrfParser:
         player_section.set_rank(line)
         player_section.set_results(line)
 
-        for i in {3, 8, 13, 47, 52, 56, 68, 79, 84}:
+        for i in (3, 8, 13, 47, 52, 56, 68, 79, 84):
             if line[i] != " ":
                 raise LineException("Column of the player section line must be blank", column=i + 1)
 
@@ -36,6 +37,7 @@ class TrfParser:
 
     @staticmethod
     def _parse_line_tournament(trf: ParsedTrf, code: TournamentCode, line: str) -> None:
+        """Parse a line containing a tournament code (xx2)."""
         if len(line) < 5 or not bool(line[5:].strip()):
             return
         section = line[5:]
@@ -70,6 +72,7 @@ class TrfParser:
 
     @staticmethod
     def _parse_line_team(trf: ParsedTrf, _: TeamCode, line: str) -> None:
+        """Parse a line containing a team code (xx3)."""
         team_section = TeamSection()
 
         team_section.set_code(line)
@@ -80,6 +83,7 @@ class TrfParser:
 
     @staticmethod
     def _parse_line_x(trf: ParsedTrf, code: XCode, line: str) -> None:
+        """Parse a line containing a javafo specific code (XXx)."""
         match code:
             case XCode.ROUNDS:
                 trf.x_section.set_number_of_rounds(line)
@@ -99,6 +103,7 @@ class TrfParser:
 
     @classmethod
     def _parse_line(cls, trf: ParsedTrf, line: str) -> None:
+        """Parse a line in a TRF."""
         if len(line) < 3:
             raise LineException("Line is incomplete")
         code_string = line[:3]
@@ -131,6 +136,7 @@ class TrfParser:
 
     @classmethod
     def parse(cls, file_path: Path) -> ParsedTrf:
+        """Parse a given TRF file returning a parsed representation."""
         trf = ParsedTrf()
 
         with file_path.open("r", encoding="utf-8") as fh:
@@ -140,7 +146,7 @@ class TrfParser:
             try:
                 cls._parse_line(trf, line)
             except LineException as e:
-                raise ParsingException(e.message, line=i + 1, column=e.column)
+                raise ParsingException(e.message, line=i + 1, column=e.column) from e
 
         trf.validate_contents()
         return trf

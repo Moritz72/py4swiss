@@ -1,4 +1,8 @@
-from py4swiss.engines.common.color_preference import ColorPreference, ColorPreferenceSide, ColorPreferenceStrength
+from py4swiss.engines.common.color_preference import (
+    ColorPreference,
+    ColorPreferenceSide,
+    ColorPreferenceStrength,
+)
 from py4swiss.engines.common.exceptions import PairingException
 from py4swiss.engines.common.float import Float
 from py4swiss.engines.common.pairing import Pairing
@@ -11,5 +15,5 @@ __all__ = [
     "Float",
     "Pairing",
     "PairingEngine",
-    "PairingException"
+    "PairingException",
 ]

@@ -4,6 +4,8 @@ from enum import Enum
 
 
 class ResultToken(str, Enum):
+    """Enum for the result in a round result of a player."""
+
     FORFEIT_LOSS = "-"
     FORFEIT_WIN = "+"
     WIN_NOT_RATED = "W"
@@ -18,9 +20,14 @@ class ResultToken(str, Enum):
     ZERO_POINT_BYE = "Z"
 
     def is_compatible_with(self, other: ResultToken) -> bool:
+        """
+        Check whether the instance and another instance can constitute the full result of a game
+        when put together.
+        """
         return (self, other) in _COMPATIBLE
 
 
+# A set of tuples of all compatible result tokens.
 _COMPATIBLE = {
     (ResultToken.FORFEIT_WIN, ResultToken.FORFEIT_LOSS),
     (ResultToken.FORFEIT_LOSS, ResultToken.FORFEIT_LOSS),
@@ -30,5 +37,5 @@ _COMPATIBLE = {
     (ResultToken.DRAW_NOT_RATED, ResultToken.DRAW_NOT_RATED),
     (ResultToken.WIN, ResultToken.LOSS),
     (ResultToken.LOSS, ResultToken.WIN),
-    (ResultToken.DRAW, ResultToken.DRAW)
+    (ResultToken.DRAW, ResultToken.DRAW),
 }

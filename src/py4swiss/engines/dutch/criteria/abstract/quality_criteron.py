@@ -6,12 +6,19 @@ from py4swiss.engines.dutch.player import Player
 
 
 class QualityCriterion(ABC):
+    """Abstract class for quality criteria (C.5 - C.19)."""
+
     @classmethod
     @abstractmethod
     def get_shift(cls, bracket: Bracket) -> int:
+        """
+        Returns the number of bits are needed to hold the maximum round pairing weight sum of the
+        given bracket.
+        """
         pass
 
     @classmethod
     @abstractmethod
     def get_weight(cls, player_1: Player, player_2: Player, zero: DynamicUint, bracket: Bracket) -> DynamicUint:
+        """Returns the criterion weight for the given players and bracket."""
         pass

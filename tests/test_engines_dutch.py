@@ -5,14 +5,12 @@ import pytest
 
 from py4swiss.engines import DutchEngine
 from py4swiss.engines.common import Pairing
-
 from tests.helpers.bbp_pairings import generate_dutch_pairings
 from tests.helpers.trf import add_random_result, get_trf
 
 
 @pytest.mark.parametrize(
-    "seed, number_of_players, number_of_rounds",
-    [(0, 6, 3), (1, 25, 23), (2, 76, 73), (3, 99, 98)]
+    "seed, number_of_players, number_of_rounds", [(0, 6, 3), (1, 25, 23), (2, 76, 73), (3, 99, 98)]
 )
 def test_vs_bbp_pairings(tmp_path: Path, seed: int, number_of_players: int, number_of_rounds: int) -> None:
     random.seed(seed)

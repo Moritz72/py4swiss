@@ -1,7 +1,8 @@
-from setuptools import setup
-from pybind11.setup_helpers import Pybind11Extension
-from pybind11 import get_include
 import glob
+
+from pybind11 import get_include
+from pybind11.setup_helpers import Pybind11Extension
+from setuptools import setup
 
 matching_sources = glob.glob("cpp/src/matching/**/*.cpp", recursive=True)
 
@@ -20,7 +21,7 @@ ext_modules = [
             "cpp/include/utility",
             get_include(),
         ],
-        language='c++',
+        language="c++",
         cxx_std=14,
     ),
     Pybind11Extension(
@@ -37,7 +38,7 @@ ext_modules = [
             "cpp/include/utility",
             get_include(),
         ],
-        language='c++',
+        language="c++",
         cxx_std=14,
     ),
 ]
