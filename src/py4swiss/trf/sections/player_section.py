@@ -3,7 +3,7 @@ from enum import Enum
 from pydantic import BaseModel, Field
 
 from py4swiss.trf.codes import PlayerCode
-from py4swiss.trf.exceptions import LineException
+from py4swiss.trf.exceptions import LineError
 from py4swiss.trf.results import RoundResult
 
 
@@ -85,7 +85,7 @@ class PlayerSection(BaseModel):
             if bool(section.strip()):
                 self.code = PlayerCode(section)
         except ValueError as e:
-            raise LineException(f"Invalid player code '{section}'", column=1) from e
+            raise LineError(f"Invalid player code '{section}'", column=1) from e
 
     def set_starting_number(self, line: str) -> None:
         section = line[4:8]
@@ -93,7 +93,7 @@ class PlayerSection(BaseModel):
             if bool(section.strip()):
                 self.starting_number = int(section.lstrip())
         except ValueError as e:
-            raise LineException(f"Invalid starting rank '{section}'", column=5) from e
+            raise LineError(f"Invalid starting rank '{section}'", column=5) from e
 
     def set_sex(self, line: str) -> None:
         section = line[9]
@@ -101,7 +101,7 @@ class PlayerSection(BaseModel):
             if bool(section.strip()):
                 self.sex = Sex(section)
         except ValueError as e:
-            raise LineException(f"Invalid sex '{section}'", column=10) from e
+            raise LineError(f"Invalid sex '{section}'", column=10) from e
 
     def set_title(self, line: str) -> None:
         section = line[10:13]
@@ -109,7 +109,7 @@ class PlayerSection(BaseModel):
             if bool(section.strip()):
                 self.title = Title(section.strip().upper())
         except ValueError as e:
-            raise LineException(f"Invalid title '{section}'", column=11) from e
+            raise LineError(f"Invalid title '{section}'", column=11) from e
 
     def set_name(self, line: str) -> None:
         section = line[14:47]
@@ -122,7 +122,7 @@ class PlayerSection(BaseModel):
             if bool(section.strip()):
                 self.fide_rating = int(section.lstrip())
         except ValueError as e:
-            raise LineException(f"Invalid fide rating '{section}'", column=53) from e
+            raise LineError(f"Invalid fide rating '{section}'", column=53) from e
 
     def set_fide_federation(self, line: str) -> None:
         section = line[53:56]
@@ -137,7 +137,7 @@ class PlayerSection(BaseModel):
             if bool(section.strip()):
                 self.fide_number = int(section.lstrip())
         except ValueError as e:
-            raise LineException(f"Invalid fide number '{section}'", column=58) from e
+            raise LineError(f"Invalid fide number '{section}'", column=58) from e
 
     def set_birth_date(self, line: str) -> None:
         section = line[69:79]
@@ -148,7 +148,7 @@ class PlayerSection(BaseModel):
                 day = int(section[8:10].strip() or 0)
                 self.birth_date = (year, month, day)
         except ValueError as e:
-            raise LineException(f"Invalid birth date '{section}'", column=70) from e
+            raise LineError(f"Invalid birth date '{section}'", column=70) from e
 
     def set_points_times_ten(self, line: str) -> None:
         section = line[80:84]
@@ -158,7 +158,7 @@ class PlayerSection(BaseModel):
                     raise ValueError
                 self.points_times_ten = int(section[:-2].lstrip()) * 10 + int(section[-1])
         except ValueError as e:
-            raise LineException(f"Invalid points '{section}'", column=81) from e
+            raise LineError(f"Invalid points '{section}'", column=81) from e
 
     def set_rank(self, line: str) -> None:
         section = line[85:90]
@@ -166,7 +166,7 @@ class PlayerSection(BaseModel):
             if bool(section.strip()):
                 self.rank = int(section.lstrip())
         except ValueError as e:
-            raise LineException(f"Invalid rank '{section}'", column=86) from e
+            raise LineError(f"Invalid rank '{section}'", column=86) from e
 
     def set_results(self, line: str) -> None:
         for i in range(89, len(line), 10):
@@ -174,7 +174,7 @@ class PlayerSection(BaseModel):
                 section = line[i : i + 10]
             except IndexError as e:
                 if bool(line[i:].strip()):
-                    raise LineException(f"Incomplete round result '{line[i:]}'", column=i + 1) from e
+                    raise LineError(f"Incomplete round result '{line[i:]}'", column=i + 1) from e
                 return
 
             try:
@@ -182,7 +182,7 @@ class PlayerSection(BaseModel):
                     raise ValueError
                 self.results.append(RoundResult.from_section(section[2:]))
             except ValueError as e:
-                raise LineException(f"Invalid round result '{section}'", column=i + 1) from e
+                raise LineError(f"Invalid round result '{section}'", column=i + 1) from e
 
     def to_string(self) -> str:
         code_string = self.code.value if self.code else ""

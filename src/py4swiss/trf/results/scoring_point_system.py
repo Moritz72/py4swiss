@@ -1,6 +1,6 @@
 from pydantic import BaseModel
 
-from py4swiss.trf.exceptions import ConsistencyException
+from py4swiss.trf.exceptions import ConsistencyError
 from py4swiss.trf.results.color_token import ColorToken
 from py4swiss.trf.results.result_token import ResultToken
 from py4swiss.trf.results.round_result import RoundResult
@@ -42,8 +42,7 @@ class ScoringPointSystem(BaseModel):
 
     def apply_code(self, code: C, points_times_ten: int) -> None:
         """
-        Update the score dict entry for all pairs covered by the given code to the given number of
-        points times 10.
+        Update the score dict entry for all pairs covered by the given code to the given number of points times 10.
         """
         # javafo Advanced User Manual
         # WW  | 1.0 | points for win with White
@@ -125,7 +124,7 @@ class ScoringPointSystem(BaseModel):
         try:
             return self.score_dict[(result, color)]
         except IndexError as e:
-            raise ConsistencyException(f"Color '{color.value}' does not match result {result.value}") from e
+            raise ConsistencyError(f"Color '{color.value}' does not match result {result.value}") from e
 
     def get_max(self) -> int:
         """Return the maximum amount of points times ten among all possible pairs of result tokens."""

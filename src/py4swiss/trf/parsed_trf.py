@@ -2,7 +2,7 @@ from pathlib import Path
 
 from pydantic import BaseModel, Field
 
-from py4swiss.trf.exceptions import ConsistencyException
+from py4swiss.trf.exceptions import ConsistencyError
 from py4swiss.trf.sections import (
     PlayerSection,
     TeamSection,
@@ -31,18 +31,18 @@ class ParsedTrf(BaseModel):
         """Validate that all information is consistent with the number of rounds."""
         number_of_rounds = self.x_section.number_of_rounds
         if number_of_rounds is None:
-            raise ConsistencyException("No number of rounds provided")
+            raise ConsistencyError("No number of rounds provided")
 
         results_lengths = {len(player_section.results) for player_section in self.player_sections}
         if max(results_lengths) > number_of_rounds:
-            raise ConsistencyException("Some players have more results than there are rounds")
+            raise ConsistencyError("Some players have more results than there are rounds")
 
     def _validate_starting_numbers(self) -> None:
         """Validate that the starting numbers of the players are consistent."""
         starting_numbers = {player_section.starting_number for player_section in self.player_sections}
         for i in range(len(self.player_sections)):
             if i + 1 not in starting_numbers:
-                raise ConsistencyException(f"Starting number '{i + 1}' is missing")
+                raise ConsistencyError(f"Starting number '{i + 1}' is missing")
 
     def _validate_points(self) -> None:
         """Validate that all player points are consistent with their results."""
@@ -56,7 +56,7 @@ class ParsedTrf(BaseModel):
             if calculated != expected:
                 points_c = round(calculated / 10, 1)
                 points_e = round(expected / 10, 1)
-                raise ConsistencyException(f"Calculated points for {name} as {points_c:.1f}, expected {points_e:.1f}")
+                raise ConsistencyError(f"Calculated points for {name} as {points_c:.1f}, expected {points_e:.1f}")
 
     def validate_contents(self) -> None:
         """Validate all information contained in the TRF."""

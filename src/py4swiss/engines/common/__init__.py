@@ -3,7 +3,7 @@ from py4swiss.engines.common.color_preference import (
     ColorPreferenceSide,
     ColorPreferenceStrength,
 )
-from py4swiss.engines.common.exceptions import PairingException
+from py4swiss.engines.common.exceptions import PairingError
 from py4swiss.engines.common.float import Float
 from py4swiss.engines.common.pairing import Pairing
 from py4swiss.engines.common.pairing_engine import PairingEngine
@@ -15,5 +15,5 @@ __all__ = [
     "Float",
     "Pairing",
     "PairingEngine",
-    "PairingException",
+    "PairingError",
 ]

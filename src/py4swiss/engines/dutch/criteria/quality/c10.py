@@ -8,19 +8,20 @@ class C10(QualityCriterion):
     """
     Implementation of the quality criterion C.10.
 
-    "minimize the number of players who do not get their colour preference."
+    FIDE handbook: "C Pairing Criteria | Quality Criteria | C.10"
+    minimize the number of players who do not get their colour preference.
     """
 
     @classmethod
     def get_shift(cls, bracket: Bracket) -> int:
-        """Returns the number of bits needed to represent all residents in the given bracket."""
-        # See C.5
+        """Return the number of bits needed to represent all residents in the given bracket."""
+        # See C.5.
         return bracket.bracket_bits
 
     @classmethod
     def get_weight(cls, player_1: Player, player_2: Player, zero: DynamicUint, bracket: Bracket) -> DynamicUint:
         """
-        Returns a weight of 1 except for in the following cases:
+        Return a weight of 1 except for in the following cases:
             - either player is a lower resident
             - both players have the same color preference side
         """
@@ -30,11 +31,10 @@ class C10(QualityCriterion):
         if player_2.role == PlayerRole.LOWER:
             return weight
 
-        # There will be a player in a pair who does not get their color preference, if and only if
-        # both players in the pair have the same color preference side. Furthermore, at least one
-        # player in each pair will get their color preference. Thus, with this choice of weight,
-        # the maximum round pairing weight sum will minimize the number of paired players that do
-        # not get their color preference.
+        # There will be a player in a pair who does not get their color preference, if and only if both players in the
+        # pair have the same color preference side. Furthermore, at least one player in each pair will get their color
+        # preference. Thus, with this choice of weight, the maximum round pairing weight sum will minimize the number of
+        # paired players that do not get their color preference.
         conflict = player_1.color_preference.side == player_2.color_preference.side
         weight |= int(not conflict)
 

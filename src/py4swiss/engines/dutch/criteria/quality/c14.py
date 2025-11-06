@@ -9,24 +9,24 @@ class C14(QualityCriterion):
     """
     Implementation of the quality criterion C.14.
 
-    "minimize the number of players who receive the same downfloat as two rounds before."
+    FIDE handbook: "C Pairing Criteria | Quality Criteria | C.14"
+    minimize the number of players who receive the same downfloat as two rounds before.
     """
 
     @classmethod
     def get_shift(cls, bracket: Bracket) -> int:
-        """Returns the number of bits needed to represent all residents in the given bracket."""
+        """Return the number of bits needed to represent all residents in the given bracket."""
         if not bracket.one_round_played:
             return 0
-        # See C.12
+        # See C.12.
         return bracket.bracket_bits
 
     @classmethod
     def get_weight(cls, player_1: Player, player_2: Player, zero: DynamicUint, bracket: Bracket) -> DynamicUint:
         """
-        Returns a weight of 2 - n, where n is the number of the given players who received a
-        downfloat two rounds before but will not receive one this round, assuming the players are
-        paired with each other. However, if one of the given players is neither an MDP nor a
-        resident, then a weight of 0 will be returned.
+        Return a weight of 2 - n, where n is the number of the given players who received a downfloat two rounds before
+        but will not receive one this round, assuming the players are paired with each other. However, if one of the
+        given players is neither an MDP nor a resident, then a weight of 0 will be returned.
         """
         weight = DynamicUint(zero)
 
@@ -34,7 +34,7 @@ class C14(QualityCriterion):
         if player_2.role == PlayerRole.LOWER or not bracket.one_round_played:
             return weight
 
-        # See C.12 for comparison
+        # See C.12 for comparison.
         prevented_double_float_1 = (player_1.float_2 == Float.DOWN) and (player_1.points <= player_2.points)
         prevented_double_float_2 = player_2.float_2 == Float.DOWN
         weight |= int(prevented_double_float_1) + int(prevented_double_float_2)

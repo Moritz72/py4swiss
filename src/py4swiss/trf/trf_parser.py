@@ -1,7 +1,7 @@
 from pathlib import Path
 
 from py4swiss.trf.codes import PlayerCode, TeamCode, TournamentCode, XCode
-from py4swiss.trf.exceptions import LineException, ParsingException
+from py4swiss.trf.exceptions import LineError, ParsingError
 from py4swiss.trf.parsed_trf import ParsedTrf
 from py4swiss.trf.sections import PlayerSection, TeamSection
 
@@ -13,7 +13,7 @@ class TrfParser:
     def _parse_line_player(trf: ParsedTrf, _: PlayerCode, line: str) -> None:
         """Parse a line containing a player code (xx1)."""
         if len(line) < 89:
-            raise LineException("Player section line is incomplete")
+            raise LineError("Player section line is incomplete")
 
         player_section = PlayerSection()
         player_section.set_code(line)
@@ -31,7 +31,7 @@ class TrfParser:
 
         for i in (3, 8, 13, 47, 52, 56, 68, 79, 84):
             if line[i] != " ":
-                raise LineException("Column of the player section line must be blank", column=i + 1)
+                raise LineError("Column of the player section line must be blank", column=i + 1)
 
         trf.player_sections.append(player_section)
 
@@ -105,7 +105,7 @@ class TrfParser:
     def _parse_line(cls, trf: ParsedTrf, line: str) -> None:
         """Parse a line in a TRF."""
         if len(line) < 3:
-            raise LineException("Line is incomplete")
+            raise LineError("Line is incomplete")
         code_string = line[:3]
 
         try:
@@ -132,7 +132,7 @@ class TrfParser:
         except ValueError:
             pass
 
-        raise LineException(f"Invalid code '{code_string}'", column=0)
+        raise LineError(f"Invalid code '{code_string}'", column=0)
 
     @classmethod
     def parse(cls, file_path: Path) -> ParsedTrf:
@@ -145,8 +145,8 @@ class TrfParser:
         for i, line in enumerate(lines):
             try:
                 cls._parse_line(trf, line)
-            except LineException as e:
-                raise ParsingException(e.message, line=i + 1, column=e.column) from e
+            except LineError as e:
+                raise ParsingError(e.message, line=i + 1, column=e.column) from e
 
         trf.validate_contents()
         return trf

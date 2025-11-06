@@ -28,8 +28,8 @@ class RoundResult(BaseModel):
 
         # Format for TRF (FIDE)
         # ---- | Startingrank-Number of the scheduled opponent (up to 4 digits)
-        # 0000 | If the player had a bye (either half-point bye, full-point bye or odd-number bye)
-        #        or was not paired (absent, retired, not nominated by team)
+        # 0000 | If the player had a bye (either half-point bye, full-point bye or odd-number bye) or was not paired
+        #        (absent, retired, not nominated by team)
         #      | (four blanks) equivalent to 0000
         player_id = int(section[:4].lstrip())
 
@@ -55,8 +55,7 @@ class RoundResult(BaseModel):
         # Bye
         # H | half-point-bye          | Not rated
         # F | full-point-bye          | Not rated
-        # U | pairing-allocated bye   | At most once for round - Not rated (U for player unpaired
-        #                               by the system)
+        # U | pairing-allocated bye   | At most once for round - Not rated (U for player unpaired by the system)
         # Z | zero-point-bye          | Known absence from round - Not rated
         #   | (blank) equivalent to Z |
         result_token = ResultToken(section[7].upper())

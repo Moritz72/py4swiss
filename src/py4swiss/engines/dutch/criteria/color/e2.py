@@ -10,17 +10,18 @@ class E2(ColorCriterion):
     """
     Implementation of the color criterion E.2.
 
-    "Grant the stronger colour preference. If both are absolute (topscorers, see A.7) grant the
-    wider colour difference (see A.6)."
+    FIDE handbook: "E Colour Allocation rules | E.2"
+    Grant the stronger colour preference. If both are absolute (topscorers, see A.7) grant the wider colour difference
+    (see A.6).
     """
 
     @classmethod
-    def evaluate(cls, player_1: Player, player_2: Player) -> bool | None:
+    def evaluate(cls, player_1: Player, player_2: Player) -> ColorPreferenceSide:
         """
-        Grants the stronger color preference, if there is a difference in strength between the
-        given players. Otherwise, if the color preference strength is absolute, grant the one
-        with the bigger difference between games with the white and black pieces, if there are
-        not the same. If none of the above applies, the criterion is not conclusive.
+        Grant the stronger color preference, if there is a difference in strength between the given players. Otherwise,
+        if the color preference strength is absolute, grant the one with the bigger difference between games with the
+        white and black pieces, if there are not the same. If none of the above applies, the criterion is not
+        conclusive.
         """
         is_same_strength = player_1.color_preference.strength == player_2.color_preference.strength
         is_same_difference = abs(player_1.color_difference) == abs(player_2.color_difference)
@@ -28,12 +29,12 @@ class E2(ColorCriterion):
 
         if not is_same_strength:
             if player_1.color_preference.strength > player_2.color_preference.strength:
-                return player_1.color_preference.side == ColorPreferenceSide.WHITE
-            return player_2.color_preference.side == ColorPreferenceSide.BLACK
+                return player_1.color_preference.side
+            return player_2.color_preference.side.get_opposite()
 
         if is_absolute and not is_same_difference:
             if abs(player_1.color_difference) > abs(player_2.color_difference):
-                return player_1.color_preference.side == ColorPreferenceSide.WHITE
-            return player_2.color_preference.side == ColorPreferenceSide.BLACK
+                return player_1.color_preference.side
+            return player_2.color_preference.side.get_opposite()
 
-        return None
+        return ColorPreferenceSide.NONE

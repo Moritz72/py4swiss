@@ -8,11 +8,11 @@ class Brackets:
     """
     A class for keeping and updating score groups as well as determining the current bracket.
 
-    "A scoregroup is normally composed of (all) the players with the same score. The only exception
-    is the special "collapsed" scoregroup defined in A.9.
-    A (pairing) bracket is a group of players to be paired. It is composed of players coming from
-    one same scoregroup (called resident players) and of players who remained unpaired after the
-    pairing of the previous bracket."
+    FIDE handbook: "A.3 Scoregroups and pairing brackets"
+    A scoregroup is normally composed of (all) the players with the same score. The only exception is the special
+    "collapsed" scoregroup defined in A.9.
+    A (pairing) bracket is a group of players to be paired. It is composed of players coming from one same scoregroup
+    (called resident players) and of players who remained unpaired after the pairing of the previous bracket.
     """
 
     def __init__(self, players: list[Player], round_number: int) -> None:
@@ -72,12 +72,12 @@ class Brackets:
 
     def collapse(self) -> None:
         """Mark the current bracket as the PPB and collapse the last bracket."""
-        # "However, if, during this process, the downfloaters (possibly none) produced by the
-        # bracket just paired, together with all the remaining players, do not allow the completion
-        # of the round-pairing, a different processing route is followed. The last paired bracket
-        # is called Penultimate Pairing Bracket (PPB). The score of its resident players is called
-        # the "collapsing" score. All the players with a score lower than the collapsing score
-        # constitute the special "collapsed" scoregroup mentioned in A.3."
+        # FIDE handbook: "A.9 Round-Pairing Outlook"
+        # However, if, during this process, the downfloaters (possibly none) produced by the bracket just paired,
+        # together with all the remaining players, do not allow the completion of the round-pairing, a different
+        # processing route is followed. The last paired bracket is called Penultimate Pairing Bracket (PPB). The score
+        # of its resident players is called the "collapsing" score. All the players with a score lower than the
+        # collapsing score constitute the special "collapsed" scoregroup mentioned in A.3.
         collapsed_last_bracket = [player for bracket in self._brackets[self._index + 1 :] for player in bracket]
 
         self._brackets = self._brackets[: self._index + 1] + [collapsed_last_bracket]

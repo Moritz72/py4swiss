@@ -11,7 +11,7 @@ class ValidityMatcher:
 
     def __init__(self, players: list[Player]) -> None:
         """
-        Initializes the `ValidityMatcher`.
+        Initialize the `ValidityMatcher`.
 
         The `ValidityMatcher` sets up a matching computer with one vertex for each player and edges
         with weights between them depending on whether they are allowed to be paired with each
@@ -26,11 +26,10 @@ class ValidityMatcher:
 
     def _set_up_computer(self) -> None:
         """
-        Configures the matching computer by setting up vertices and edge weights.
+        Configure the matching computer by setting up vertices and edge weights.
 
         Each vertex represents a player (and potentially an extra one for a bye if needed).
-        Edge weights are determined by the validity of pairings according to the absolute criteria
-        C.1, C.2, and C.3:
+        Edge weights are determined by the validity of pairings according to the absolute criteria C.1, C.2, and C.3:
             - 1 if the pairing between two players is allowed
             - 0 if it violates any absolute criteria
         """
@@ -49,8 +48,8 @@ class ValidityMatcher:
 
     def finalize_match(self, player_1: Player, player_2: Player) -> None:
         """
-        Finalizes the fact that two players will be paired with one another by removing all other
-        edge weights from the corresponding vertices in the matching computer.
+        Finalize the fact that two players will be paired with one another by removing all other edge weights from the
+        corresponding vertices in the matching computer.
         """
         i = self._index_dict[player_1]
         j = self._index_dict[player_2]
@@ -63,8 +62,8 @@ class ValidityMatcher:
 
     def is_valid_matching(self) -> bool:
         """
-        Checks whether the current edge weights allow for a full pairing of all players whilst
-        adhering to the absolute criteria C.1, C.2, and C.3.
+        Check whether the current edge weights allow for a full pairing of all players whilst adhering to the absolute
+        criteria C.1, C.2, and C.3.
         """
         self._computer.compute_matching()
         return all(i != j for i, j in enumerate(self._computer.get_matching()))

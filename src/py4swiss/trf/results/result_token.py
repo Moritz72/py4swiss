@@ -21,8 +21,7 @@ class ResultToken(str, Enum):
 
     def is_compatible_with(self, other: ResultToken) -> bool:
         """
-        Check whether the instance and another instance can constitute the full result of a game
-        when put together.
+        Check whether the instance and another instance can constitute the full result of a game when put together.
         """
         return (self, other) in _COMPATIBLE
 

@@ -7,14 +7,15 @@ class C3(AbsoluteCriterion):
     """
     Implementation of the absolute criterion C.3.
 
-    "non-topscorers (see A.7) with the same absolute colour preference (see A6.a) shall not meet
-    (see C.04.1.f and C.04.1.g)."
+    FIDE handbook: "C Pairing Criteria | Absolute Criteria | C.3"
+    non-topscorers (see A.7) with the same absolute colour preference (see A6.a) shall not meet (see C.04.1.f and
+    C.04.1.g).
     """
 
     @classmethod
     def evaluate(cls, player_1: Player, player_2: Player) -> bool:
         """
-        Checks whether any of the following conditions hold for the given players:
+        Check whether any of the following conditions hold for the given players:
             - At least one of the players is a top scorer
             - The players do not share the same colour preference side
             - Either player does not have an absolute colour preference

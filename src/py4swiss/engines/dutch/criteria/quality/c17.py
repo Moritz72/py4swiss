@@ -9,14 +9,15 @@ class C17(QualityCriterion):
     """
     Implementation of the quality criterion C.17.
 
-    "minimize the score differences of players who receive the same upfloat as the previous round."
+    FIDE handbook: "C Pairing Criteria | Quality Criteria | C.17"
+    minimize the score differences of players who receive the same upfloat as the previous round.
     """
 
     @classmethod
     def get_shift(cls, bracket: Bracket) -> int:
         """
-        Returns the number of bits needed to represent all occurrences of all score differences
-        between MDPs and residents in the given bracket.
+        Return the number of bits needed to represent all occurrences of all score differences between MDPs and
+        residents in the given bracket.
         """
         if not bracket.one_round_played:
             return 0
@@ -26,10 +27,9 @@ class C17(QualityCriterion):
     @classmethod
     def get_weight(cls, player_1: Player, player_2: Player, zero: DynamicUint, bracket: Bracket) -> DynamicUint:
         """
-        Returns a weight based on the score difference of the given players as well as the
-        difference of their scores to the minimum score in the given bracket and their upfloats
-        in the previous round. However, if one of the given players is neither an MDP nor a
-        resident, then a weight of 0 will be returned.
+        Return a weight based on the score difference of the given players as well as the difference of their scores to
+        the minimum score in the given bracket and their upfloats in the previous round. However, if one of the given
+        players is neither an MDP nor a resident, then a weight of 0 will be returned.
         """
         weight = DynamicUint(zero)
 
@@ -37,9 +37,8 @@ class C17(QualityCriterion):
         if player_2.role == PlayerRole.LOWER or not bracket.one_round_played:
             return weight
 
-        # See C.6 for comparison
-        # Note that, similar to C.13, only the lower ranked player can upfloat and unpaired players
-        # never upfloat.
+        # See C.6 for comparison. Note that, similar to C.13, only the lower ranked player can upfloat and unpaired
+        # players never upfloat.
         double = (player_2.float_1 == Float.UP) and (player_1.points > player_2.points)
         difference = player_1.points - bracket.min_bracket_score + 10
         weight -= (zero | int(double)) << bracket.score_difference_bit_dict[difference]

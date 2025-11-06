@@ -1,7 +1,7 @@
 from pydantic import BaseModel, Field
 
 from py4swiss.trf.codes import XCode
-from py4swiss.trf.exceptions import LineException
+from py4swiss.trf.exceptions import LineError
 from py4swiss.trf.results import ScoringPointSystem, ScoringPointSystemCode
 
 
@@ -35,19 +35,19 @@ class XSection(BaseModel):
     def set_number_of_rounds(self, line: str) -> None:
         sections = line.split()
         if len(sections) != 2:
-            raise LineException(f"Invalid number_of_rounds line '{line}'")
+            raise LineError(f"Invalid number_of_rounds line '{line}'")
         try:
             number_of_rounds = int(sections[1])
             self.number_of_rounds = number_of_rounds
         except ValueError as e:
-            raise LineException(f"Invalid number of rounds '{sections[1]}'") from e
+            raise LineError(f"Invalid number of rounds '{sections[1]}'") from e
 
     def add_zeroed_id(self, section: str) -> None:
         try:
             zeroed_id = int(section.lstrip())
             self.zeroed_ids.add(zeroed_id)
         except ValueError as e:
-            raise LineException(f"Invalid player id '{section}'") from e
+            raise LineError(f"Invalid player id '{section}'") from e
 
     def adjust_score_point_system(self, section: str) -> None:
         if "=" not in section or section.count("=") != 1:
@@ -57,7 +57,7 @@ class XSection(BaseModel):
         try:
             code = ScoringPointSystemCode(code_string)
         except ValueError as e:
-            raise LineException(f"Invalid score point system code '{code_string}'") from e
+            raise LineError(f"Invalid score point system code '{code_string}'") from e
 
         try:
             if "." in point_string:
@@ -69,7 +69,7 @@ class XSection(BaseModel):
                 raise ValueError
             points_times_ten = int(integer_string) * 10 + int(decimal_string)
         except ValueError as e:
-            raise LineException(f"Invalid score point system points '{point_string}'") from e
+            raise LineError(f"Invalid score point system points '{point_string}'") from e
 
         self.score_point_system.apply_code(code, points_times_ten)
 
@@ -82,18 +82,18 @@ class XSection(BaseModel):
             case "black1":
                 self.configuration.first_round_color = False
             case _:
-                raise LineException(f"Invalid configuration code '{section}'")
+                raise LineError(f"Invalid configuration code '{section}'")
 
     def add_acceleration(self, line: str) -> None:
         sections = line.split()
         if len(sections) < 2:
-            raise LineException(f"Incomplete acceleration code line '{line}'")
+            raise LineError(f"Incomplete acceleration code line '{line}'")
 
         try:
             player_id = int(sections[1].lstrip())
             points_times_ten_list = []
         except ValueError as e:
-            raise LineException(f"Invalid acceleration player id '{sections[1]}'") from e
+            raise LineError(f"Invalid acceleration player id '{sections[1]}'") from e
 
         for section in sections[2:]:
             try:
@@ -101,24 +101,24 @@ class XSection(BaseModel):
                 points_times_ten = int(integer_string) * 10 + int(decimal_string)
                 points_times_ten_list.append(points_times_ten)
             except ValueError as e:
-                raise LineException(f"Invalid acceleration points '{section}'") from e
+                raise LineError(f"Invalid acceleration points '{section}'") from e
 
         self.accelerations[player_id] = points_times_ten_list
 
     def add_forbidden_pair(self, line: str) -> None:
         sections = line.split()
         if len(sections) != 3:
-            raise LineException(f"Invalid forbidden pairs line '{line}'")
+            raise LineError(f"Invalid forbidden pairs line '{line}'")
 
         try:
             player_id_1 = int(sections[1])
         except ValueError as e:
-            raise LineException(f"Invalid forbidden pair id '{sections[1]}'") from e
+            raise LineError(f"Invalid forbidden pair id '{sections[1]}'") from e
 
         try:
             player_id_2 = int(sections[2])
         except ValueError as e:
-            raise LineException(f"Invalid forbidden pair id '{sections[2]}'") from e
+            raise LineError(f"Invalid forbidden pair id '{sections[2]}'") from e
 
         self.forbidden_pairs.append((player_id_1, player_id_2))
 

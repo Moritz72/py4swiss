@@ -1,4 +1,4 @@
-from py4swiss.engines.common import Pairing, PairingEngine, PairingException
+from py4swiss.engines.common import Pairing, PairingEngine, PairingError
 from py4swiss.engines.dutch.bracket import BracketPairer, Brackets
 from py4swiss.engines.dutch.player import Player, get_player_infos_from_trf
 from py4swiss.engines.dutch.validity_matcher import ValidityMatcher
@@ -7,8 +7,8 @@ from py4swiss.trf import ParsedTrf
 
 class DutchEngine(PairingEngine):
     """
-    A pairing engine implementing the Dutch System according to the FIDE Handbook as of 2025, see
-    "C.04.3 FIDE (Dutch) System (effective till 31 January 2026)".
+    A pairing engine implementing the Dutch System according to the FIDE Handbook as of 2025, see "C.04.3 FIDE (Dutch)
+    System (effective till 31 January 2026)".
     """
 
     @staticmethod
@@ -16,17 +16,15 @@ class DutchEngine(PairingEngine):
         """Get a score for a pair of players for purpose of sorting the round pairing."""
         player_1, player_2 = player_pair
 
-        # Although the FIDE handbook does not specify an order for pairs, to be compatible with
-        # BBPPairings, its order of pairings is enforced. Thus, pairings are sorted the following
-        # way in descending order of importance:
+        # Although the FIDE handbook does not specify an order for pairs, to be compatible with bbpPairings, its order
+        # of pairings is enforced. Thus, pairings are sorted the following way in descending order of importance:
         #   - number of points of the higher ranked player
         #   - number of points of the lower ranked player
         #   - rank of the higher ranked player
         # The pairing-allocated bye is always listed last.
 
-        # Since all chosen round pairings are already ordered by rank of the higher ranked player,
-        # this score ignores the last criterion, relying on the stability of the used sorting
-        # algorithm.
+        # Since all chosen round pairings are already ordered by rank of the higher ranked player, this score ignores
+        # the last criterion, relying on the stability of the used sorting algorithm.
         if player_1 == player_2:
             return -1, -1
         return max(player_1.points, player_2.points), min(player_1.points, player_2.points)
@@ -36,8 +34,7 @@ class DutchEngine(PairingEngine):
         """Get a pairing from a pair of players."""
         player_1, player_2 = player_pair
 
-        # Players are denoted by their starting number, whilst the pairing-allocated bye is denoted
-        # by 0.
+        # Players are denoted by their starting number, whilst the pairing-allocated bye is denoted by 0.
         if player_1 == player_2:
             return Pairing(white=player_1.number, black=0)
         return Pairing(white=player_1.number, black=player_2.number)
@@ -72,7 +69,7 @@ class DutchEngine(PairingEngine):
 
         # Check if pairing the next round is possible.
         if not validity_matcher.is_valid_matching():
-            raise PairingException("Round can not be paired.")
+            raise PairingError("Round can not be paired.")
 
         # Determine bracket pairings and save the results until there are none left.
         while not brackets.is_finished():

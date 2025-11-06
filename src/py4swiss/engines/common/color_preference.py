@@ -1,4 +1,5 @@
 from enum import Enum
+from typing import Self
 
 from pydantic import BaseModel
 
@@ -9,6 +10,10 @@ class ColorPreferenceSide(int, Enum):
     WHITE = 1
     NONE = 0
     BLACK = -1
+
+    def get_opposite(self) -> Self:
+        """Return the opposite side to the given one."""
+        return ColorPreferenceSide(-int(self))
 
 
 class ColorPreferenceStrength(int, Enum):

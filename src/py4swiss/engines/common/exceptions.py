@@ -1,4 +1,4 @@
-class PairingException(Exception):
-    """Exception preventing successful pairing of rounds."""
+class PairingError(Exception):
+    """Error preventing successful pairing of rounds."""
 
     pass

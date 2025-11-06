@@ -1,5 +1,6 @@
 from abc import ABC, abstractmethod
 
+from py4swiss.engines.common import ColorPreferenceSide
 from py4swiss.engines.dutch.player import Player
 
 
@@ -8,10 +9,10 @@ class ColorCriterion(ABC):
 
     @classmethod
     @abstractmethod
-    def evaluate(cls, player_1: Player, player_2: Player) -> bool | None:
+    def evaluate(cls, player_1: Player, player_2: Player) -> ColorPreferenceSide:
         """
-        Check whether the color criterion can be applied to the given players and if so, determine
-        which of the given players should receive the white pieces.
+        Check whether the color criterion can be applied to the given players and if so, determine which of the given
+        players should receive the white pieces.
 
         The returned value should be interpreted in the following way:
             - `ColorPreferenceSide.WHITE`: `player_1` should get the white pieces

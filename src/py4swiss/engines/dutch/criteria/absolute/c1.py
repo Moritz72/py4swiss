@@ -6,13 +6,11 @@ class C1(AbsoluteCriterion):
     """
     Implementation of the absolute criterion C.1.
 
-    "see C.04.1.b (Two players shall not play against each other more than once)"
+    FIDE handbook: "C Pairing Criteria | Absolute Criteria | C.1"
+    see C.04.1.b (Two players shall not play against each other more than once)
     """
 
     @classmethod
     def evaluate(cls, player_1: Player, player_2: Player) -> bool:
-        """
-        Checks whether the given players have already played each other in previous
-        rounds.
-        """
+        """Check whether the given players have already played each other in previous rounds."""
         return player_1.number not in player_2.opponents

@@ -1,5 +1,5 @@
-class LineException(Exception):
-    """Parsing exception in a line of a TRF file."""
+class LineError(Exception):
+    """Parsing error in a line of a TRF file."""
 
     def __init__(self, message: str, column: int | None = None) -> None:
         """Initialize the exception."""
@@ -8,8 +8,8 @@ class LineException(Exception):
         super().__init__(message)
 
 
-class ParsingException(Exception):
-    """Parsing exception in a TRF file."""
+class ParsingError(Exception):
+    """Parsing error in a TRF file."""
 
     def __init__(self, message: str, line: int | None = None, column: int | None = None) -> None:
         """Initialize the exception."""
@@ -28,7 +28,7 @@ class ParsingException(Exception):
         return f"{self.message}" + (f" ({location})" if location else "")
 
 
-class ConsistencyException(Exception):
-    """Exception due to inconsistent input in a TRF."""
+class ConsistencyError(Exception):
+    """Error due to inconsistent input in a TRF."""
 
     pass

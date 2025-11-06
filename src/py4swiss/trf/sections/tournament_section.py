@@ -1,6 +1,6 @@
 from pydantic import BaseModel
 
-from py4swiss.trf.exceptions import LineException
+from py4swiss.trf.exceptions import LineError
 
 
 class TournamentSection(BaseModel):
@@ -44,7 +44,7 @@ class TournamentSection(BaseModel):
             try:
                 section = line[i : i + 8]
             except IndexError as e:
-                raise LineException(f"Incomplete dates of the round line '{line}'") from e
+                raise LineError(f"Incomplete dates of the round line '{line}'") from e
 
             try:
                 if bool(section.strip()):
@@ -53,4 +53,4 @@ class TournamentSection(BaseModel):
                     day = int(section[8:10].strip() or 0)
                     self.dates_of_the_round.append((year, month, day))
             except ValueError as e:
-                raise LineException(f"Invalid round date '{section}'", column=i) from e
+                raise LineError(f"Invalid round date '{section}'", column=i) from e

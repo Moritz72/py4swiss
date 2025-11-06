@@ -9,28 +9,28 @@ class C18(QualityCriterion):
     """
     Implementation of the quality criterion C.18.
 
-    "minimize the score differences of players who receive the same downfloat as two rounds
-    before."
+    FIDE handbook: "C Pairing Criteria | Quality Criteria | C.18"
+    minimize the score differences of players who receive the same downfloat as two rounds
+    before.
     """
 
     @classmethod
     def get_shift(cls, bracket: Bracket) -> int:
         """
-        Returns the number of bits needed to represent all occurrences of all score differences
-        between MDPs and residents in the given bracket.
+        Return the number of bits needed to represent all occurrences of all score differences between MDPs and
+        residents in the given bracket.
         """
         if not bracket.two_rounds_played:
             return 0
-        # See C.6
+        # See C.6.
         return bracket.score_difference_total_bits
 
     @classmethod
     def get_weight(cls, player_1: Player, player_2: Player, zero: DynamicUint, bracket: Bracket) -> DynamicUint:
         """
-        Returns a weight based on the score difference of the given players as well as the
-        difference of their scores to the minimum score in the given bracket and their downfloats
-        two rounds before. However, if one of the given players is neither an MDP nor a resident,
-        then a weight of 0 will be returned.
+        Return a weight based on the score difference of the given players as well as the difference of their scores to
+        the minimum score in the given bracket and their downfloats two rounds before. However, if one of the given
+        players is neither an MDP nor a resident, then a weight of 0 will be returned.
         """
         weight = DynamicUint(zero)
 
@@ -38,7 +38,7 @@ class C18(QualityCriterion):
         if player_2.role == PlayerRole.LOWER or not bracket.two_rounds_played:
             return weight
 
-        # See C.16 for comparison
+        # See C.16 for comparison.
         prev_1 = player_1.float_2 == Float.DOWN
         prev_2 = player_2.float_2 == Float.DOWN
 

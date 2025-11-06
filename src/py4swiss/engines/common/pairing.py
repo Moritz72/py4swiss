@@ -31,8 +31,8 @@ class Pairing(BaseModel):
             lines = [line.rstrip() for line in fh]
         pair_list = [[int(item) for item in line.split(" ")] for line in lines[1:]]
 
-        # Pairs need to consist of exactly two items separated by whitespace or a single item in
-        # case of a pairing-allocated bye.
+        # Pairs need to consist of exactly two items separated by whitespace or a single item in case of a
+        # pairing-allocated bye.
         if not all(0 < len(pair) < 3 for pair in pair_list):
             raise ValueError("Invalid pair")
 
