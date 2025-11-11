@@ -8,6 +8,22 @@ and also directly utitlizes the maximum weight matching algorithm implemented in
 
 This is a work in progress.
 
+## Tests
+
+In order to run the tests `bbpPairings.exe` needs to be in the environment.
+
+You can download the executable from [here](https://github.com/BieremaBoyzProgramming/bbpPairings/releases/tag/v5.0.1)
+and then add it to the environment via
+```cmd
+set PATH=%PATH%;/path/to/bbpPairings
+```
+for Windows or
+```bash
+export PATH="$PATH:/path/to/bbpPairings"
+```
+for Linux.
+
+
 ## License
 
 This project is licensed under the [MIT License](LICENSE).

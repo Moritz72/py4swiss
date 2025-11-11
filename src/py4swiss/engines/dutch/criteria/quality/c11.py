@@ -34,7 +34,7 @@ class C11(QualityCriterion):
 
         # See C.10 for comparison.
         strong = all(p.color_preference.strength >= ColorPreferenceStrength.STRONG for p in (player_1, player_2))
-        conflict = player_1.color_preference.side == player_2.color_preference.side
+        conflict = player_1.color_preference.side.conflicts(player_2.color_preference.side)
         weight |= int(not (strong and conflict))
 
         return weight

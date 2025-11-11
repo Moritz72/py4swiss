@@ -7,8 +7,8 @@ W = TypeVar("W")
 
 class ComputerBase(Generic[W], ABC):
     """
-    Implement the Blossom algorithm for computing a maximum weight matching in a general graph with efficient update of
-    weights in C++.
+    This class implements the Blossom algorithm for computing a maximum weight matching in a general graph with
+    efficient update of weights in C++.
 
     The Blossom algorithm finds a matching that maximizes the sum of the edge weights while ensuring that each vertex is
     incident to at most one matched edge. This implementation supports dynamically adding vertices, setting edge
@@ -53,8 +53,8 @@ class ComputerBase(Generic[W], ABC):
     def get_matching(self) -> list[int]:
         """
         Return the current matching as a list of integers which has length equal to the number of vertices in the graph.
-        For each vertex `u`, `matching[u]` gives the index of the vertex it is matched with, or its own index if the
-        vertex is unmatched.
+        For each vertex u, matching[u] is the index of the vertex it is matched with, or its own index if the vertex is
+        unmatched.
         """
         ...
 

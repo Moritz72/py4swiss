@@ -9,15 +9,14 @@ class ValidityMatcher:
     allows completion of the round-pairing.
     """
 
-    def __init__(self, players: list[Player]) -> None:
+    def __init__(self, players: list[Player], forbidden_pairs: set[tuple[int, int]]) -> None:
         """
-        Initialize the `ValidityMatcher`.
-
-        The `ValidityMatcher` sets up a matching computer with one vertex for each player and edges
-        with weights between them depending on whether they are allowed to be paired with each
-        other or not.
+        Set up a new matching computer with one vertex for each player and edges with weights between them depending on
+        whether they are allowed to be paired with each other or not.
         """
         self._players: list[Player] = players
+        self._forbidden_pairs: set[tuple[int, int]] = forbidden_pairs
+
         self._len: int = len(players) + len(players) % 2
         self._computer: ComputerDutchValidity = ComputerDutchValidity(self._len, 1)
         self._index_dict: dict[Player, int] = {player: i for i, player in enumerate(self._players)}
@@ -38,18 +37,23 @@ class ValidityMatcher:
 
         for i, player_1 in enumerate(self._players):
             for j, player_2 in enumerate(self._players[i + 1 :]):
-                allowed = C1.evaluate(player_1, player_2) and C3.evaluate(player_1, player_2)
-                self._computer.set_edge_weight(i, i + j + 1, int(allowed))
+                self._computer.set_edge_weight(i, i + j + 1, int(self.is_allowed_pair(player_1, player_2)))
 
         if len(self._players) % 2 == 1:
             for i, player in enumerate(self._players):
                 allowed = C2.evaluate(player, player)
                 self._computer.set_edge_weight(i, len(self._players), int(allowed))
 
+    def is_allowed_pair(self, player_1: Player, player_2: Player) -> bool:
+        """Check whether the given players are allowed to be paired together."""
+        if bool({(player_1.id, player_2.id), (player_2.id, player_1.id)} & self._forbidden_pairs):
+            return False
+        return C1.evaluate(player_1, player_2) and C3.evaluate(player_1, player_2)
+
     def finalize_match(self, player_1: Player, player_2: Player) -> None:
         """
-        Finalize the fact that two players will be paired with one another by removing all other edge weights from the
-        corresponding vertices in the matching computer.
+        Finalize the fact that the given players will be paired with one another by removing all other edge weights from
+        the corresponding vertices in the matching computer.
         """
         i = self._index_dict[player_1]
         j = self._index_dict[player_2]

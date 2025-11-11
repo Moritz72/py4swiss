@@ -16,8 +16,10 @@ class Brackets:
     """
 
     def __init__(self, players: list[Player], round_number: int) -> None:
-        """Initialize the `Brackets`."""
-        self._brackets: list[list[Player]] = [list(group) for score, group in groupby(players, key=lambda p: p.points)]
+        """Initialize new brackets."""
+        self._brackets: list[list[Player]] = [
+            list(group) for score, group in groupby(players, key=lambda p: p.points_with_acceleration)
+        ]
         self._round_number: int = round_number
 
         self._index: int = 0
@@ -27,13 +29,13 @@ class Brackets:
         self._assign_roles()
 
     def _get_resident_list(self) -> list[Player]:
-        """Get the residents of the current bracket."""
+        """Return the residents of the current bracket."""
         if self._index >= len(self._brackets):
             return []
         return self._brackets[self._index]
 
     def _get_lower_list(self) -> list[Player]:
-        """Get the residents of the next bracket."""
+        """Return the residents of the next bracket."""
         if self._index + 1 >= len(self._brackets):
             return []
         return self._brackets[self._index + 1]
@@ -50,11 +52,11 @@ class Brackets:
             lower.role = PlayerRole.LOWER
 
     def is_finished(self) -> bool:
-        """Check if all brackets have been exhausted."""
+        """Check whether all brackets have been exhausted."""
         return self._index == len(self._brackets)
 
     def get_current_bracket(self) -> Bracket:
-        """Get the current bracket."""
+        """Return the current bracket."""
         return Bracket.from_data(
             self._mdp_list, self._get_resident_list(), self._get_lower_list(), self._round_number, self._collapsed
         )

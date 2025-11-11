@@ -39,8 +39,9 @@ class C17(QualityCriterion):
 
         # See C.6 for comparison. Note that, similar to C.13, only the lower ranked player can upfloat and unpaired
         # players never upfloat.
-        double = (player_2.float_1 == Float.UP) and (player_1.points > player_2.points)
-        difference = player_1.points - bracket.min_bracket_score + 10
-        weight -= (zero | int(double)) << bracket.score_difference_bit_dict[difference]
+        player_1_more_points = player_1.points_with_acceleration > player_2.points_with_acceleration
+        double_float = (player_2.float_1 == Float.UP) and player_1_more_points
+        difference = player_1.points_with_acceleration - bracket.min_bracket_score + 10
+        weight -= (zero | int(double_float)) << bracket.score_difference_bit_dict[difference]
 
         return weight

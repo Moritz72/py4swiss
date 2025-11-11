@@ -1,8 +1,8 @@
 from py4swiss.dynamicuint import DynamicUint
 from py4swiss.engines.dutch.bracket.bracket import Bracket
 from py4swiss.engines.dutch.criteria import QUALITY_CRITERIA
-from py4swiss.engines.dutch.criteria.absolute import C1, C3
 from py4swiss.engines.dutch.player import Player
+from py4swiss.engines.dutch.validity_matcher import ValidityMatcher
 from py4swiss.matching_computer import ComputerDutchOptimality
 
 
@@ -18,15 +18,15 @@ class BracketMatcher:
     To determine the order of generation, additional updates need to be performed after initiation.
     """
 
-    def __init__(self, bracket: Bracket) -> None:
+    def __init__(self, bracket: Bracket, validity_matcher: ValidityMatcher) -> None:
         """
-        Initialize the `BracketMatcher`.
-
-        The `BracketMatcher` sets up a matching computer with one vertex for each player and edges with weights between
-        according to the absolute and quality criteria.
+        Set up a new matching computer with one vertex for each player and edges with weights between according to the
+        absolute and quality criteria.
         """
-        self._player_list: list[Player] = bracket.mdp_list + bracket.resident_list + bracket.lower_list
         self._bracket: Bracket = bracket
+        self._validity_matcher: ValidityMatcher = validity_matcher
+
+        self._player_list: list[Player] = bracket.mdp_list + bracket.resident_list + bracket.lower_list
 
         self._max_weight: DynamicUint = self._get_max_weight()
         self._zero_weight: DynamicUint = self._max_weight & 0
@@ -43,11 +43,11 @@ class BracketMatcher:
         self.update_matching()
 
     def _get_index(self, player: Player) -> int:
-        """Get the vertex index of the given player."""
+        """Return the vertex index of the given player."""
         return self._index_dict[player]
 
     def _get_player(self, index: int) -> Player:
-        """Get the player for the given vertex index."""
+        """Return the player for the given vertex index."""
         return self._index_dict_reverse[index]
 
     def _set_weight(self, i: int, j: int, weight: DynamicUint) -> None:
@@ -94,11 +94,11 @@ class BracketMatcher:
         return weight
 
     def _get_weight(self, player_1: Player, player_2: Player) -> DynamicUint:
-        """Returns a weight containing all quality criteria and bye preferences."""
+        """Return a weight containing all quality criteria and bye preferences."""
         weight = DynamicUint(self._zero_weight)
 
         # Only players that can be paired with each other according to the absolute criteria get an edge.
-        if not C1.evaluate(player_1, player_2) or not C3.evaluate(player_1, player_2):
+        if not self._validity_matcher.is_allowed_pair(player_1, player_2):
             return weight
 
         # In the PPB and LPB the choice of unpaired player matters. Thus, pairing players which already received a bye

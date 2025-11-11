@@ -1,21 +1,40 @@
 from enum import Enum
+from typing import Self
 
-from pydantic import BaseModel, Field
+from pydantic import Field
 
 from py4swiss.trf.codes import PlayerCode
 from py4swiss.trf.exceptions import LineError
 from py4swiss.trf.results import RoundResult
+from py4swiss.trf.sections.abstract_section import AbstractSection, Date
+
+
+class Index(int, Enum):
+    """Delimiter positions of a player section line of a TRF."""
+
+    CODE = 0
+    STARTING_NUMBER = 4
+    SEX = 9
+    TITLE = 10
+    NAME = 14
+    FIDE_RATING = 48
+    FIDE_FEDERATION = 53
+    FIDE_NUMBER = 57
+    BIRTH_DATE = 69
+    POINTS = 80
+    RANK = 85
+    RESULTS = 91
 
 
 class Sex(str, Enum):
-    """Enum for the sex of a player."""
+    """Sex of a player."""
 
     MALE = "m"
     FEMALE = "w"
 
 
 class Title(str, Enum):
-    """Enum for the title of a player."""
+    """Title of a player."""
 
     GRANDMASTER = "GM"
     INTERNATIONAL_MASTER = "IM"
@@ -27,181 +46,124 @@ class Title(str, Enum):
     WOMEN_CANDIDATE_MASTER = "WCM"
 
 
-class PlayerSection(BaseModel):
+class PlayerSection(AbstractSection):
     """
     Representation of a parsed player section of a TRF.
 
     Attributes:
-        code (PlayerCode | None):
-        starting_number (int | None)
-        sex (Sex | None)
-        title (Title | None)
-        name (str | None)
-        fide_rating (int | None)
-        fide_federation (str | None)
-        fide_number (int | None)
-        birth_date (tuple[int, int, int] | None)
-        points_times_ten (int | None)
-        rank (int | None)
-        results (list[RoundResult])
+        code (PlayerCode): The player code of the section (any of xx1)
+        starting_number (int): The starting number of the player in the tournament
+        sex (Sex | None): The sex of the player if specified
+        title (Title | None): The title of the player if present
+        name (str | None): The name of the player if specified
+        fide_rating (int | None): The FIDE rating of the player if present
+        fide_federation (str | None): The FIDE federation of the player if present
+        fide_number (int | None): The FIDE number of the player if present
+        birth_date (Date | None): The date of birth of the player if specified
+        points_times_ten (int): The current point total of the player in the tournament (not including acceleration)
+        rank (int): The current rank of the player in the tournament
+        results (list[RoundResult]): The current list of results of the player in the tournament
     """
 
-    code: PlayerCode | None = None
-    starting_number: int | None = None
+    code: PlayerCode
+    starting_number: int
     sex: Sex | None = None
     title: Title | None = None
     name: str | None = None
     fide_rating: int | None = None
     fide_federation: str | None = None
     fide_number: int | None = None
-    birth_date: tuple[int, int, int] | None = None
-    points_times_ten: int | None = None
-    rank: int | None = None
+    birth_date: Date | None = None
+    points_times_ten: int = 0
+    rank: int
     results: list[RoundResult] = Field(default_factory=list)
 
     @staticmethod
-    def _get_birth_date_string(birth_date: tuple[int, int, int]) -> str:
-        string = ""
-        if birth_date[0] == 0:
-            return string
-        string += str(birth_date[0]).zfill(4)
-        if birth_date[1] == 0:
-            return string
-        string += "/"
-        string += str(birth_date[1]).zfill(2)
-        if birth_date[2] == 0:
-            return string
-        string += "/"
-        string += str(birth_date[2]).zfill(2)
-        return string
+    def _get_result(string: str, index: int = 0) -> RoundResult:
+        """Return a round result from the given string."""
+        try:
+            return RoundResult.from_string(string)
+        except ValueError as e:
+            raise LineError(f"Invalid round result '{string}'", column=index + 1) from e
 
     @staticmethod
-    def _get_points_string(points_times_ten: int) -> str:
-        return f"{points_times_ten // 10}.{points_times_ten % 10}"
+    def _serialize_results(results: list[RoundResult]) -> str:
+        """Return a TRF conform string representation of the round results."""
+        return "".join([RoundResult.BUFFER_LENGTH * " " + result.to_string() for result in results])
 
-    def set_code(self, line: str) -> None:
-        section = line[0:3]
-        try:
-            if bool(section.strip()):
-                self.code = PlayerCode(section)
-        except ValueError as e:
-            raise LineError(f"Invalid player code '{section}'", column=1) from e
+    @staticmethod
+    def _deserialize_results(string: str, index: int = 0) -> list[RoundResult]:
+        """Convert the given string to a list of round results."""
+        string = string.rstrip()
 
-    def set_starting_number(self, line: str) -> None:
-        section = line[4:8]
-        try:
-            if bool(section.strip()):
-                self.starting_number = int(section.lstrip())
-        except ValueError as e:
-            raise LineError(f"Invalid starting rank '{section}'", column=5) from e
+        step_size = RoundResult.CONTENT_LENGTH + RoundResult.BUFFER_LENGTH
+        parts = [string[i : i + RoundResult.CONTENT_LENGTH] for i in range(0, len(string), step_size)]
 
-    def set_sex(self, line: str) -> None:
-        section = line[9]
-        try:
-            if bool(section.strip()):
-                self.sex = Sex(section)
-        except ValueError as e:
-            raise LineError(f"Invalid sex '{section}'", column=10) from e
+        return [PlayerSection._get_result(part, index + i * step_size) for i, part in enumerate(parts)]
 
-    def set_title(self, line: str) -> None:
-        section = line[10:13]
-        try:
-            if bool(section.strip()):
-                self.title = Title(section.strip().upper())
-        except ValueError as e:
-            raise LineError(f"Invalid title '{section}'", column=11) from e
+    @classmethod
+    def from_string(cls, string: str) -> Self:
+        """Convert the given string to a player section."""
+        if len(string) < Index.RESULTS - 2:
+            raise LineError("Incomplete player section")
 
-    def set_name(self, line: str) -> None:
-        section = line[14:47]
-        if bool(section.strip()):
-            self.name = section.strip()
+        code = cls._deserialize_enum(string[Index.CODE : Index.STARTING_NUMBER - 1], PlayerCode, Index.CODE)
+        starting_number = cls._deserialize_integer(string[Index.STARTING_NUMBER : Index.SEX - 1], Index.STARTING_NUMBER)
+        sex = cls._deserialize_enum(string[Index.SEX : Index.TITLE], Sex, Index.SEX + 1)
+        title = cls._deserialize_enum(string[Index.TITLE : Index.NAME - 1], Title, Index.TITLE)
+        name = cls._deserialize_string(string[Index.NAME : Index.FIDE_RATING - 1])
+        fide_rating = cls._deserialize_integer(string[Index.FIDE_RATING : Index.FIDE_FEDERATION - 1], Index.FIDE_RATING)
+        fide_federation = cls._deserialize_string(string[Index.FIDE_FEDERATION : Index.FIDE_NUMBER - 1])
+        fide_number = cls._deserialize_integer(string[Index.FIDE_NUMBER : Index.BIRTH_DATE - 1], Index.FIDE_NUMBER)
+        birth_date = cls._deserialize_date(string[Index.BIRTH_DATE : Index.POINTS - 1], Index.BIRTH_DATE)
+        points_times_ten = cls._deserialize_decimal(string[Index.POINTS : Index.RANK - 1], Index.POINTS)
+        rank = cls._deserialize_integer(string[Index.RANK : Index.RESULTS - 1], Index.RANK)
+        results = cls._deserialize_results(string[Index.RESULTS :], Index.RESULTS)
 
-    def set_fide_rating(self, line: str) -> None:
-        section = line[48:52]
-        try:
-            if bool(section.strip()):
-                self.fide_rating = int(section.lstrip())
-        except ValueError as e:
-            raise LineError(f"Invalid fide rating '{section}'", column=53) from e
+        if code is None:
+            raise LineError("No code provided", column=Index.CODE + 1)
+        if starting_number is None:
+            raise LineError("No starting number provided", column=Index.STARTING_NUMBER + 1)
+        if points_times_ten is None:
+            raise LineError("No points provided", column=Index.POINTS + 1)
+        if rank is None:
+            raise LineError("No rank provided", column=Index.RANK + 1)
 
-    def set_fide_federation(self, line: str) -> None:
-        section = line[53:56]
-        if bool(section.strip()):
-            self.fide_federation = section.strip()
-
-    def set_fide_number(self, line: str) -> None:
-        section = line[57:68]
-        try:
-            if bool(section[:3].strip()):
-                raise ValueError
-            if bool(section.strip()):
-                self.fide_number = int(section.lstrip())
-        except ValueError as e:
-            raise LineError(f"Invalid fide number '{section}'", column=58) from e
-
-    def set_birth_date(self, line: str) -> None:
-        section = line[69:79]
-        try:
-            if bool(section.strip()):
-                year = int(section[:4].strip() or 0)
-                month = int(section[5:7].strip() or 0)
-                day = int(section[8:10].strip() or 0)
-                self.birth_date = (year, month, day)
-        except ValueError as e:
-            raise LineError(f"Invalid birth date '{section}'", column=70) from e
-
-    def set_points_times_ten(self, line: str) -> None:
-        section = line[80:84]
-        try:
-            if bool(section.strip()):
-                if section[-2] != ".":
-                    raise ValueError
-                self.points_times_ten = int(section[:-2].lstrip()) * 10 + int(section[-1])
-        except ValueError as e:
-            raise LineError(f"Invalid points '{section}'", column=81) from e
-
-    def set_rank(self, line: str) -> None:
-        section = line[85:90]
-        try:
-            if bool(section.strip()):
-                self.rank = int(section.lstrip())
-        except ValueError as e:
-            raise LineError(f"Invalid rank '{section}'", column=86) from e
-
-    def set_results(self, line: str) -> None:
-        for i in range(89, len(line), 10):
-            try:
-                section = line[i : i + 10]
-            except IndexError as e:
-                if bool(line[i:].strip()):
-                    raise LineError(f"Incomplete round result '{line[i:]}'", column=i + 1) from e
-                return
-
-            try:
-                if any(section[i] != " " for i in (0, 1)):
-                    raise ValueError
-                self.results.append(RoundResult.from_section(section[2:]))
-            except ValueError as e:
-                raise LineError(f"Invalid round result '{section}'", column=i + 1) from e
+        return cls(
+            code=code,
+            starting_number=starting_number,
+            sex=sex,
+            title=title,
+            name=name,
+            fide_rating=fide_rating,
+            fide_federation=fide_federation,
+            fide_number=fide_number,
+            birth_date=birth_date,
+            points_times_ten=points_times_ten,
+            rank=rank,
+            results=results,
+        )
 
     def to_string(self) -> str:
-        code_string = self.code.value if self.code else ""
-        starting_number_string = str(self.starting_number) if self.starting_number else ""
-        sex_string = self.sex.value if self.sex else ""
-        tite_string = self.title.value if self.title else ""
-        name_string = self.name or ""
-        fide_rating_string = str(self.fide_rating) if self.fide_rating else ""
-        fide_federation_string = self.fide_federation or ""
-        fide_number_string = str(self.fide_number) if self.fide_number else ""
-        birth_date_string = self._get_birth_date_string(self.birth_date) if self.birth_date else ""
-        points_string = self._get_points_string(self.points_times_ten) if self.points_times_ten else "0.0"
-        rank_string = str(self.rank) if self.rank else ""
+        """Return a TRF conform string respresentation of the given player section."""
+        parts = [
+            self._serialize_enum(self.code).ljust(Index.STARTING_NUMBER - Index.CODE - 1),
+            self._serialize_integer(self.starting_number).rjust(Index.SEX - Index.STARTING_NUMBER - 1),
+            self._serialize_enum(self.sex).rjust(Index.TITLE - Index.SEX),
+            self._serialize_enum(self.title).rjust(Index.NAME - Index.TITLE - 1),
+            self._serialize_string(self.name).ljust(Index.FIDE_RATING - Index.NAME - 1),
+            self._serialize_integer(self.fide_rating).rjust(Index.FIDE_FEDERATION - Index.FIDE_RATING - 1),
+            self._serialize_string(self.fide_federation).ljust(Index.FIDE_NUMBER - Index.FIDE_FEDERATION - 1),
+            self._serialize_integer(self.fide_number).rjust(Index.BIRTH_DATE - Index.FIDE_NUMBER - 1),
+            self._serialize_date(self.birth_date).ljust(Index.POINTS - Index.BIRTH_DATE - 1),
+            self._serialize_decimal(self.points_times_ten).rjust(Index.RANK - Index.POINTS - 1),
+            self._serialize_integer(self.rank).rjust(Index.RESULTS - Index.RANK - 2),
+            self._serialize_results(self.results)[1:],
+        ]
 
-        line = ""
-        line += f"{code_string:>3} {starting_number_string:>4} {sex_string:>1}{tite_string:>3} {name_string:<33} "
-        line += f"{fide_rating_string:>4} {fide_federation_string:>3} {fide_number_string:>11} {birth_date_string:<10} "
-        line += f"{points_string:>4} {rank_string:>4}"
-        for result in self.results:
-            line += result.to_string().ljust(10)
+        string = " ".join(parts)
 
-        return line
+        # There is no whitespace between sex and title.
+        string = string[: Index.TITLE] + string[Index.TITLE + 1 :]
+
+        return string

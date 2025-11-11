@@ -38,7 +38,8 @@ class C13(QualityCriterion):
         # never receive an upfloat when paired with a lower ranked player. Since, unlike in C.12, unpaired players can
         # never upfloat, such players can be ignored. Thus, with this choice of weigh, the maximum round pairing weight
         # sum will minimize the number of paired players that receive the same upfloat as the previous round.
-        double = (player_2.float_1 == Float.UP) and (player_1.points > player_2.points)
-        weight |= int(not double)
+        player_1_more_points = player_1.points_with_acceleration > player_2.points_with_acceleration
+        double_float = (player_2.float_1 == Float.UP) and player_1_more_points
+        weight |= int(not double_float)
 
         return weight

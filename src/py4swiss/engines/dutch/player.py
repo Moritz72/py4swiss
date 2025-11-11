@@ -12,7 +12,7 @@ from py4swiss.engines.common import (
     ColorPreferenceStrength,
     Float,
 )
-from py4swiss.trf.results.color_token import ColorToken
+from py4swiss.trf.results import ColorToken, ResultToken
 
 if TYPE_CHECKING:
     from py4swiss.trf.parsed_trf import ParsedTrf
@@ -30,79 +30,85 @@ class PlayerRole(int, Enum):
 @total_ordering
 class Player(BaseModel):
     """
-    A collection of any player related information relevant for pairing.
+    A collection of all player related information relevant for pairing.
 
     Attributes:
-        number (int): Starting number
-        points (int): Points multiplied by 10 (including acceleration)
-        color_preference (ColorPreference): Color preference according to A.6
-        color_difference (int): Number of white games minus number of black games
-        color_double (bool): Whether the previous two rounds were played with the same color
-        float_1 (Float): Float from one round before
-        float_2 (Float): Float from two rounds before
-        opponents (set[int]): Starting numbers of already encountered players
-        colors (list[bool | None): Colors from all rounds (None for unplayed rounds)
-        bye_received (bool): Whether there was already a bye or forfeit win
-        top_scorer (bool): Whether this is a topscorer
-        role: (PlayerRole): Role in the current bracket (bracket context only)
+        id (int): The starting number of the player acting as a unique identifier
+        number (int): The starting number of the player for pairing purposes
+        points (int): The current points of the player multiplied by ten
+        points_with_acceleration (int): The current points of the player multiplied by ten (including acceleration)
+        color_preference (ColorPreference): The color preference of the player
+        color_difference (int): The number of played white games of the player minus the number of played black games
+        color_double (bool): Whether the previous two played rounds of the player were played with the same color
+        float_1 (Float): The float of the player from one round before
+        float_2 (Float): The float of the player from two rounds before
+        opponents (set[int]): The IDs of the players against which the player already has a played game against
+        colors (list[bool): A list of whether the player had the white pieces or not in their played games
+        bye_received (bool): Whether the player already had a bye or forfeit win
+        top_scorer (bool): Whether the player is a topscorer
+        role: (PlayerRole): The role of the player in the current bracket (bracket context only)
     """
 
+    id: int
     number: int
     points: int
+    points_with_acceleration: int
     color_preference: ColorPreference
     color_difference: int
     color_double: bool
     float_1: Float
     float_2: Float
     opponents: set[int]
-    colors: list[bool | None]
+    colors: list[bool]
     bye_received: bool
     top_scorer: bool
 
     role: PlayerRole = PlayerRole.RESIDENT
 
     def __lt__(self, other: Player) -> bool:
+        """Check whether the latter player ranks higher than the former one."""
         # FIDE handbook: "A.2 Order"
         # For pairings purposes only, the players are ranked in order of, respectively
         # a. score
         # b. pairing numbers assigned to the players accordingly to the initial ranking list and subsequent
         #    modifications depending on possible late entries or rating adjustments
-        return (self.points, -self.number) < (other.points, -other.number)
+        return (self.points_with_acceleration, -self.number) < (other.points_with_acceleration, -other.number)
 
     def __le__(self, other: Player) -> bool:
-        return (self.points, -self.number) <= (other.points, -other.number)
+        """Check whether the latter player is ranked higher or identical to the former one."""
+        return self == other or self < other
 
     def __eq__(self, other: object) -> bool:
+        """Check whether the given players have the same ID."""
         if not isinstance(other, Player):
             return False
-        return (self.points, -self.number) == (other.points, -other.number)
+        return self.id == other.id
 
     def __hash__(self) -> int:
-        return self.number
+        """Return the hash of the ID."""
+        return hash(self.id)
 
 
-def _get_points_list(player_section: PlayerSection, x_section: XSection) -> list[int]:
-    """Get a list of points of the given player after each round (including acceleration)."""
-    assert player_section.starting_number is not None
-
-    results = player_section.results
-    accelerations = x_section.accelerations.get(player_section.starting_number, [])
-    accelerations += (len(results) - len(accelerations) + 1) * [0]
+def _get_points_list(section: PlayerSection, x_section: XSection) -> list[int]:
+    """Return a list of points of the given player after each round (including acceleration)."""
+    round_results = section.results
+    accelerations = x_section.accelerations.get(section.starting_number, [])
+    accelerations += (len(round_results) - len(accelerations) + 1) * [0]
 
     points_list = []
     current_points = 0
 
-    for result, acceleration in zip(results, accelerations[:-1], strict=True):
+    for result, acceleration in zip(round_results, accelerations, strict=False):
         points_list.append(current_points + acceleration)
-        current_points += x_section.score_point_system.get_points_times_ten(result)
-    points_list.append(current_points + accelerations[-1])
+        current_points += x_section.scoring_point_system.get_points_times_ten(result)
+    points_list.append(current_points + accelerations[len(round_results)])
 
     return points_list
 
 
-def _get_color_preference(player_section: PlayerSection) -> tuple[ColorPreference, int, bool]:
-    """Get the color preference and color difference of the given player."""
-    colors = [result.color for result in player_section.results if result.color != ColorToken.BYE_OR_NOT_PAIRED]
+def _get_color_preference(section: PlayerSection) -> tuple[ColorPreference, int, bool]:
+    """Return the color preference and color difference of the given player."""
+    colors = [round_result.color for round_result in section.results if round_result.result.is_played()]
 
     # FIDE handbook: "A.6 Colour differences and colour preferences"
     # The colour difference of a player is the number of games played with white minus the number of games played with
@@ -142,13 +148,10 @@ def _get_color_preference(player_section: PlayerSection) -> tuple[ColorPreferenc
     return ColorPreference(side=side, strength=ColorPreferenceStrength.NONE), difference, double
 
 
-def _get_floats(player_section: PlayerSection, round_number: int, points_list_dict: dict[int, list[int]]) -> Float:
-    """Get the float from one and two rounds before for the given player."""
+def _get_floats(section: PlayerSection, round_number: int, points_list_dict: dict[int, list[int]]) -> Float:
+    """Return the float of the given player in the round with the given number."""
     if round_number < 0:
         return Float.NONE
-
-    assert player_section.starting_number is not None
-    player = player_section.starting_number
 
     # FIDE handbook: "A.4 Floaters and floats"
     # a. A downfloater is a player who remains unpaired in a bracket, and is thus moved to the next bracket. In the
@@ -157,15 +160,15 @@ def _get_floats(player_section: PlayerSection, round_number: int, points_list_di
     #    downfloat, the lower one an upfloat.
     #    A player who, for whatever reason, does not play in a round, also receives a downfloat.
 
-    player_point_list = points_list_dict[player]
+    player_point_list = points_list_dict[section.starting_number]
     if len(player_point_list) < round_number:
         return Float.NONE
 
-    opponent = player_section.results[round_number].id
-    if opponent == 0:
+    round_result = section.results[round_number]
+    if not round_result.result.is_played():
         return Float.DOWN
 
-    opponent_point_list = points_list_dict[opponent]
+    opponent_point_list = points_list_dict[round_result.id]
     player_points = player_point_list[round_number]
     opponent_points = opponent_point_list[round_number]
 
@@ -177,42 +180,43 @@ def _get_floats(player_section: PlayerSection, round_number: int, points_list_di
 
 
 def get_player_infos_from_trf(trf: ParsedTrf) -> list[Player]:
-    """Get all information relevant for pairing of all players."""
+    """Return a list of all player related information relevant for pairing."""
     players = []
     sections = trf.player_sections
-    points_list_dict = {
-        player.starting_number: _get_points_list(player, trf.x_section)
-        for player in sections
-        if player.starting_number is not None
-    }
+    points_list_dict = {section.starting_number: _get_points_list(section, trf.x_section) for section in sections}
 
     round_number = min(len(player.results) for player in sections)
-    max_score = trf.x_section.score_point_system.get_max() * round_number
-    last_round = round_number == (trf.x_section.number_of_rounds or 0) - 1
+    max_score = trf.x_section.scoring_point_system.get_max() * round_number
+    last_round = round_number == trf.x_section.number_of_rounds - 1
     sections = [player for player in sections if len(player.results) == round_number]
     sections = [player for player in sections if player.starting_number not in trf.x_section.zeroed_ids]
 
-    for player_section in sections:
-        assert player_section.starting_number is not None
+    for i, section in enumerate(sections):
+        number = i + 1 if trf.x_section.configuration.by_rank else section.starting_number
 
-        color_preference, color_difference, color_double = _get_color_preference(player_section)
-        float_1 = _get_floats(player_section, round_number - 1, points_list_dict)
-        float_2 = _get_floats(player_section, round_number - 2, points_list_dict)
+        color_preference, color_difference, color_double = _get_color_preference(section)
+        float_1 = _get_floats(section, round_number - 1, points_list_dict)
+        float_2 = _get_floats(section, round_number - 2, points_list_dict)
 
-        opponents = {result.id for result in player_section.results}
-        colors = [result.color.to_bool() for result in player_section.results]
+        white = ColorToken.WHITE
+        opponents = {round_result.id for round_result in section.results if round_result.result.is_played()}
+        colors = [round_result.color == white for round_result in section.results if round_result.result.is_played()]
+        results = {round_result.result for round_result in section.results}
 
-        bye_received = 0 in opponents
-        opponents.discard(0)
+        pairing_allocated_bye = ResultToken.PAIRING_ALLOCATED_BYE in results
+        forfeit_win = ResultToken.FORFEIT_WIN in results
+        bye_received = pairing_allocated_bye or forfeit_win
 
         # FIDE handbook: "A.7 Topscorers"
         # Topscorers are players who have a score of over 50% of the maximum possible score when pairing the final round
         # of the tournament.
-        top_scorer = last_round and (points_list_dict[player_section.starting_number][-1] > max_score / 2)
+        top_scorer = last_round and (points_list_dict[section.starting_number][-1] > max_score / 2)
 
         player = Player(
-            number=player_section.starting_number,
-            points=points_list_dict[player_section.starting_number][-1],
+            id=section.starting_number,
+            number=number,
+            points=section.points_times_ten,
+            points_with_acceleration=points_list_dict[section.starting_number][-1],
             color_preference=color_preference,
             color_difference=color_difference,
             color_double=color_double,

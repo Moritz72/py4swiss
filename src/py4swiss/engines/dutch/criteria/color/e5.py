@@ -20,7 +20,7 @@ class E5(ColorCriterion):
         separately.
         """
 
-        if player_1.number < player_2.number:
+        if player_1 > player_2:
             if bool(player_1.number % 2):
                 return ColorPreferenceSide.WHITE
             return ColorPreferenceSide.BLACK

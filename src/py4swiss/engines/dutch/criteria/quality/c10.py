@@ -35,7 +35,7 @@ class C10(QualityCriterion):
         # pair have the same color preference side. Furthermore, at least one player in each pair will get their color
         # preference. Thus, with this choice of weight, the maximum round pairing weight sum will minimize the number of
         # paired players that do not get their color preference.
-        conflict = player_1.color_preference.side == player_2.color_preference.side
+        conflict = player_1.color_preference.side.conflicts(player_2.color_preference.side)
         weight |= int(not conflict)
 
         return weight

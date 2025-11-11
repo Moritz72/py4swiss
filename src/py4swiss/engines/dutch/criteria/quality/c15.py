@@ -35,7 +35,8 @@ class C15(QualityCriterion):
             return weight
 
         # See C.13 for comparison.
-        double = (player_2.float_2 == Float.UP) and (player_1.points > player_2.points)
-        weight |= int(not double)
+        player_1_more_points = player_1.points_with_acceleration > player_2.points_with_acceleration
+        double_float = (player_2.float_2 == Float.UP) and player_1_more_points
+        weight |= int(not double_float)
 
         return weight

@@ -40,9 +40,9 @@ class C6(QualityCriterion):
         # For each downfloater, the SD is defined as the difference between the score of the downfloater, and an
         # artificial value that is one point less than the score of the lowest ranked player of the current bracket
         # (even when this yields a negative value).
-        difference_1 = player_1.points - bracket.min_bracket_score + 10
-        difference_2 = player_2.points - bracket.min_bracket_score + 10
-        difference_3 = player_1.points - player_2.points
+        difference_1 = player_1.points_with_acceleration - bracket.min_bracket_score + 10
+        difference_2 = player_2.points_with_acceleration - bracket.min_bracket_score + 10
+        difference_3 = player_1.points_with_acceleration - player_2.points_with_acceleration
 
         # The weight counts the number of score differences caused by downfloats that will not occur as well as a malus
         # for the score difference that does occur, if this pair is selected in separate parts of the weight based on

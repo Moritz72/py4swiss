@@ -4,17 +4,33 @@ from py4swiss.trf.exceptions import ConsistencyError
 from py4swiss.trf.results.color_token import ColorToken
 from py4swiss.trf.results.result_token import ResultToken
 from py4swiss.trf.results.round_result import RoundResult
-from py4swiss.trf.results.scoring_point_system_code import ScoringPointSystemCode as C
+from py4swiss.trf.results.scoring_point_system_code import ScoringPointSystemCode
 
 ScoreDict = dict[tuple[ResultToken, ColorToken], int]
+
+# A mapping of codes to tuples of result tokens necessary to construct a concised representation of the scoring system.
+SCORING_POINT_SYSTEM_IDENTIFIER_DICT = {
+    ScoringPointSystemCode.WIN_WITH_WHITE: (ResultToken.WIN, ColorToken.WHITE),
+    ScoringPointSystemCode.WIN_WITH_BLACK: (ResultToken.WIN, ColorToken.BLACK),
+    ScoringPointSystemCode.DRAW_WITH_WHITE: (ResultToken.DRAW, ColorToken.WHITE),
+    ScoringPointSystemCode.DRAW_WITH_BLACK: (ResultToken.DRAW, ColorToken.BLACK),
+    ScoringPointSystemCode.LOSS_WITH_WHITE: (ResultToken.LOSS, ColorToken.WHITE),
+    ScoringPointSystemCode.LOSS_WITH_BLACK: (ResultToken.LOSS, ColorToken.BLACK),
+    ScoringPointSystemCode.ZERO_POINT_BYE: (ResultToken.ZERO_POINT_BYE, ColorToken.BYE_OR_NOT_PAIRED),
+    ScoringPointSystemCode.HALF_POINT_BYE: (ResultToken.HALF_POINT_BYE, ColorToken.BYE_OR_NOT_PAIRED),
+    ScoringPointSystemCode.FULL_POINT_BYE: (ResultToken.FULL_POINT_BYE, ColorToken.BYE_OR_NOT_PAIRED),
+    ScoringPointSystemCode.PAIRING_ALLOCATED_BYE: (ResultToken.PAIRING_ALLOCATED_BYE, ColorToken.BYE_OR_NOT_PAIRED),
+    ScoringPointSystemCode.FORFEIT_WIN: (ResultToken.FORFEIT_WIN, ColorToken.WHITE),
+    ScoringPointSystemCode.FORFEIT_LOSS: (ResultToken.FORFEIT_LOSS, ColorToken.WHITE),
+}
 
 
 class ScoringPointSystem(BaseModel):
     """
-    A scoring system for a tournament supporting all javafo defined codes.
+    A scoring system for a tournament supporting all codes defined by javafo.
 
     Attributes:
-        score_dict (ScoreDict): The number of points times 10 awarded for pairs of result tokens
+        score_dict (ScoreDict): The number of points times ten awarded for pairs of result and color token
     """
 
     score_dict: ScoreDict = {
@@ -40,10 +56,8 @@ class ScoringPointSystem(BaseModel):
         (ResultToken.ZERO_POINT_BYE, ColorToken.BYE_OR_NOT_PAIRED): 0,
     }
 
-    def apply_code(self, code: C, points_times_ten: int) -> None:
-        """
-        Update the score dict entry for all pairs covered by the given code to the given number of points times 10.
-        """
+    def apply_code(self, code: ScoringPointSystemCode, points_times_ten: int) -> None:
+        """Update the score dictionary entry for all pairs covered by the given code to the given number of points."""
         # javafo Advanced User Manual
         # WW  | 1.0 | points for win with White
         # BW  | 1.0 | points for win with Black
@@ -61,39 +75,39 @@ class ScoringPointSystem(BaseModel):
         # D   | 0.5 | encompasses all the codes WD, BD, HPB
         # L   | 0.0 | encompasses all the codes WL, BL, ZPB, FL (not supported by javafo)
         match code:
-            case C.WIN_WITH_WHITE:
+            case ScoringPointSystemCode.WIN_WITH_WHITE:
                 self.score_dict[(ResultToken.WIN_NOT_RATED, ColorToken.WHITE)] = points_times_ten
                 self.score_dict[(ResultToken.WIN, ColorToken.WHITE)] = points_times_ten
-            case C.WIN_WITH_BLACK:
+            case ScoringPointSystemCode.WIN_WITH_BLACK:
                 self.score_dict[(ResultToken.WIN_NOT_RATED, ColorToken.BLACK)] = points_times_ten
                 self.score_dict[(ResultToken.WIN, ColorToken.BLACK)] = points_times_ten
-            case C.DRAW_WITH_WHITE:
+            case ScoringPointSystemCode.DRAW_WITH_WHITE:
                 self.score_dict[(ResultToken.DRAW_NOT_RATED, ColorToken.WHITE)] = points_times_ten
                 self.score_dict[(ResultToken.DRAW, ColorToken.WHITE)] = points_times_ten
-            case C.DRAW_WITH_BLACK:
+            case ScoringPointSystemCode.DRAW_WITH_BLACK:
                 self.score_dict[(ResultToken.DRAW_NOT_RATED, ColorToken.BLACK)] = points_times_ten
                 self.score_dict[(ResultToken.DRAW, ColorToken.BLACK)] = points_times_ten
-            case C.LOSS_WITH_WHITE:
+            case ScoringPointSystemCode.LOSS_WITH_WHITE:
                 self.score_dict[(ResultToken.LOSS_NOT_RATED, ColorToken.WHITE)] = points_times_ten
                 self.score_dict[(ResultToken.LOSS, ColorToken.WHITE)] = points_times_ten
-            case C.LOSS_WITH_BLACK:
+            case ScoringPointSystemCode.LOSS_WITH_BLACK:
                 self.score_dict[(ResultToken.LOSS_NOT_RATED, ColorToken.BLACK)] = points_times_ten
                 self.score_dict[(ResultToken.LOSS, ColorToken.BLACK)] = points_times_ten
-            case C.ZERO_POINT_BYE:
+            case ScoringPointSystemCode.ZERO_POINT_BYE:
                 self.score_dict[(ResultToken.ZERO_POINT_BYE, ColorToken.BYE_OR_NOT_PAIRED)] = points_times_ten
-            case C.HALF_POINT_BYE:
+            case ScoringPointSystemCode.HALF_POINT_BYE:
                 self.score_dict[(ResultToken.HALF_POINT_BYE, ColorToken.BYE_OR_NOT_PAIRED)] = points_times_ten
-            case C.FULL_POINT_BYE:
+            case ScoringPointSystemCode.FULL_POINT_BYE:
                 self.score_dict[(ResultToken.FULL_POINT_BYE, ColorToken.BYE_OR_NOT_PAIRED)] = points_times_ten
-            case C.PAIRING_ALLOCATED_BYE:
+            case ScoringPointSystemCode.PAIRING_ALLOCATED_BYE:
                 self.score_dict[(ResultToken.PAIRING_ALLOCATED_BYE, ColorToken.BYE_OR_NOT_PAIRED)] = points_times_ten
-            case C.FORFEIT_WIN:
+            case ScoringPointSystemCode.FORFEIT_WIN:
                 self.score_dict[(ResultToken.FORFEIT_WIN, ColorToken.WHITE)] = points_times_ten
                 self.score_dict[(ResultToken.FORFEIT_WIN, ColorToken.BLACK)] = points_times_ten
-            case C.FORFEIT_LOSS:
+            case ScoringPointSystemCode.FORFEIT_LOSS:
                 self.score_dict[(ResultToken.FORFEIT_LOSS, ColorToken.WHITE)] = points_times_ten
                 self.score_dict[(ResultToken.FORFEIT_LOSS, ColorToken.BLACK)] = points_times_ten
-            case C.WIN:
+            case ScoringPointSystemCode.WIN:
                 self.score_dict[(ResultToken.WIN_NOT_RATED, ColorToken.WHITE)] = points_times_ten
                 self.score_dict[(ResultToken.WIN, ColorToken.WHITE)] = points_times_ten
                 self.score_dict[(ResultToken.WIN_NOT_RATED, ColorToken.BLACK)] = points_times_ten
@@ -101,13 +115,13 @@ class ScoringPointSystem(BaseModel):
                 self.score_dict[(ResultToken.FORFEIT_WIN, ColorToken.WHITE)] = points_times_ten
                 self.score_dict[(ResultToken.FORFEIT_WIN, ColorToken.BLACK)] = points_times_ten
                 self.score_dict[(ResultToken.FULL_POINT_BYE, ColorToken.BYE_OR_NOT_PAIRED)] = points_times_ten
-            case C.DRAW:
+            case ScoringPointSystemCode.DRAW:
                 self.score_dict[(ResultToken.DRAW_NOT_RATED, ColorToken.WHITE)] = points_times_ten
                 self.score_dict[(ResultToken.DRAW, ColorToken.WHITE)] = points_times_ten
                 self.score_dict[(ResultToken.DRAW_NOT_RATED, ColorToken.BLACK)] = points_times_ten
                 self.score_dict[(ResultToken.DRAW, ColorToken.BLACK)] = points_times_ten
                 self.score_dict[(ResultToken.HALF_POINT_BYE, ColorToken.BYE_OR_NOT_PAIRED)] = points_times_ten
-            case C.LOSS:
+            case ScoringPointSystemCode.LOSS:
                 self.score_dict[(ResultToken.LOSS_NOT_RATED, ColorToken.WHITE)] = points_times_ten
                 self.score_dict[(ResultToken.LOSS, ColorToken.WHITE)] = points_times_ten
                 self.score_dict[(ResultToken.LOSS_NOT_RATED, ColorToken.BLACK)] = points_times_ten
@@ -117,7 +131,7 @@ class ScoringPointSystem(BaseModel):
                 self.score_dict[(ResultToken.ZERO_POINT_BYE, ColorToken.BYE_OR_NOT_PAIRED)] = points_times_ten
 
     def get_points_times_ten(self, round_result: RoundResult) -> int:
-        """Return the number of points times 10 awarded for a round result of a player."""
+        """Return the number of points times ten awarded for a round result of a player."""
         color = round_result.color
         result = round_result.result
 
@@ -127,25 +141,5 @@ class ScoringPointSystem(BaseModel):
             raise ConsistencyError(f"Color '{color.value}' does not match result {result.value}") from e
 
     def get_max(self) -> int:
-        """Return the maximum amount of points times ten among all possible pairs of result tokens."""
+        """Return the maximum amount of points times ten among all possible pairs."""
         return max(self.score_dict.values())
-
-    def to_string(self) -> str:
-        """Return a TRF(x) conform string representation of the instance."""
-        value_dict = {
-            C.WIN_WITH_WHITE: self.score_dict[(ResultToken.WIN, ColorToken.WHITE)],
-            C.WIN_WITH_BLACK: self.score_dict[(ResultToken.WIN, ColorToken.BLACK)],
-            C.DRAW_WITH_WHITE: self.score_dict[(ResultToken.DRAW, ColorToken.WHITE)],
-            C.DRAW_WITH_BLACK: self.score_dict[(ResultToken.DRAW, ColorToken.BLACK)],
-            C.LOSS_WITH_WHITE: self.score_dict[(ResultToken.LOSS, ColorToken.WHITE)],
-            C.LOSS_WITH_BLACK: self.score_dict[(ResultToken.LOSS, ColorToken.BLACK)],
-            C.ZERO_POINT_BYE: self.score_dict[(ResultToken.ZERO_POINT_BYE, ColorToken.BYE_OR_NOT_PAIRED)],
-            C.HALF_POINT_BYE: self.score_dict[(ResultToken.HALF_POINT_BYE, ColorToken.BYE_OR_NOT_PAIRED)],
-            C.FULL_POINT_BYE: self.score_dict[(ResultToken.FULL_POINT_BYE, ColorToken.BYE_OR_NOT_PAIRED)],
-            C.PAIRING_ALLOCATED_BYE: self.score_dict[(ResultToken.PAIRING_ALLOCATED_BYE, ColorToken.BYE_OR_NOT_PAIRED)],
-            C.FORFEIT_WIN: self.score_dict[(ResultToken.FORFEIT_WIN, ColorToken.WHITE)],
-            C.FORFEIT_LOSS: self.score_dict[(ResultToken.FORFEIT_LOSS, ColorToken.WHITE)],
-        }
-
-        parts = [f"{code.value}={round(points_times_ten / 10, 1)}" for code, points_times_ten in value_dict.items()]
-        return " ".join(parts)

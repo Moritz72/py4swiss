@@ -41,15 +41,16 @@ class C18(QualityCriterion):
         # See C.16 for comparison.
         prev_1 = player_1.float_2 == Float.DOWN
         prev_2 = player_2.float_2 == Float.DOWN
+        player_1_more_points = player_1.points_with_acceleration > player_2.points_with_acceleration
 
-        difference_1 = player_1.points - bracket.min_bracket_score + 10
-        difference_2 = player_2.points - bracket.min_bracket_score + 10
-        difference_3 = player_1.points - player_2.points
+        difference_1 = player_1.points_with_acceleration - bracket.min_bracket_score + 10
+        difference_2 = player_2.points_with_acceleration - bracket.min_bracket_score + 10
+        difference_3 = player_1.points_with_acceleration - player_2.points_with_acceleration
 
         weight += (zero | int(prev_1)) << bracket.score_difference_bit_dict[difference_1]
         weight += (zero | int(prev_2)) << bracket.score_difference_bit_dict[difference_2]
 
-        if prev_1 and player_1.points > player_2.points:
+        if prev_1 and player_1_more_points:
             weight -= (zero | 1) << bracket.score_difference_bit_dict.get(difference_3, 0)
 
         return weight

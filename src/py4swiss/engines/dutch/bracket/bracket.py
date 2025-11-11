@@ -50,17 +50,21 @@ class Bracket(BaseModel):
         # For each downfloater, the SD is defined as the difference between the score of the downfloater, and an
         # artificial value that is one point less than the score of the lowest ranked player of the current bracket
         # (even when this yields a negative value).
-        point_differences = [player.points - resident_list[-1].points + 10 for player in mdp_list + resident_list]
+        min_points = resident_list[-1].points_with_acceleration
+        point_differences = [player.points_with_acceleration - min_points + 10 for player in mdp_list + resident_list]
 
         # Count the possible score difference between MDPs and residents. Note that MDPs can never be paired with one
         # another, since they would already have been paired in the previous bracket, if that was the case.
         for mdp in mdp_list:
-            point_differences.extend({mdp.points - resident.points for resident in resident_list})
+            mdp_points = mdp.points_with_acceleration
+            point_differences.extend({mdp_points - resident.points_with_acceleration for resident in resident_list})
 
         # Count the possible score differences between residents. Note that here a non-zero score is only possible if
         # the bracket is the CLB.
         for i, resident in enumerate(resident_list):
-            point_differences.extend({resident.points - other.points for other in resident_list[i + 1 :]})
+            resident_points = resident.points_with_acceleration
+            lower_residents = resident_list[i + 1 :]
+            point_differences.extend({resident_points - lower.points_with_acceleration for lower in lower_residents})
 
         bits = {key: point_differences.count(key).bit_length() for key in point_differences}
         cumulative_bits = {}
@@ -85,17 +89,17 @@ class Bracket(BaseModel):
         round_number: int,
         collapsed: bool,
     ) -> Self:
-        """Return an instance given the minimal necessary information."""
+        """Return a bracket given the minimal necessary information."""
         score_difference_total_bits, score_difference_bit_dict = cls._get_score_difference_bits(mdp_list, resident_list)
         return cls(
             mdp_list=mdp_list,
             resident_list=resident_list,
             lower_list=lower_list,
             one_round_played=round_number > 1,
-            two_rounds_played=round_number > 2,
+            two_rounds_played=round_number > 1 + 1,
             penultimate_pairing_bracket=collapsed,
             last_pairing_bracket=not bool(lower_list),
-            min_bracket_score=resident_list[-1].points,
+            min_bracket_score=resident_list[-1].points_with_acceleration,
             bracket_bits=len(resident_list).bit_length(),
             low_bracket_bits=len(lower_list).bit_length(),
             score_difference_total_bits=score_difference_total_bits,

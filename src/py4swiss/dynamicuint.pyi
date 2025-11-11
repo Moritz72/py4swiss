@@ -78,7 +78,7 @@ class DynamicUint:
         ...
 
     def __eq__(self, other: object) -> bool:
-        """Check if all 32-bit integer parts are equal."""
+        """Check whether all 32-bit integer parts are equal."""
         ...
 
     def __ne__(self, other: object) -> bool:

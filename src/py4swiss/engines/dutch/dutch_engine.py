@@ -12,36 +12,42 @@ class DutchEngine(PairingEngine):
     """
 
     @staticmethod
-    def _get_player_pair_score(player_pair: tuple[Player, Player]) -> tuple[int, int]:
-        """Get a score for a pair of players for purpose of sorting the round pairing."""
+    def _get_player_pair_score(player_pair: tuple[Player, Player]) -> tuple[int, int, int]:
+        """Return a score for a pair of players for purpose of sorting the round pairing."""
         player_1, player_2 = player_pair
 
-        # Although the FIDE handbook does not specify an order for pairs, to be compatible with bbpPairings, its order
-        # of pairings is enforced. Thus, pairings are sorted the following way in descending order of importance:
-        #   - number of points of the higher ranked player
-        #   - number of points of the lower ranked player
-        #   - rank of the higher ranked player
-        # The pairing-allocated bye is always listed last.
+        # FIDE handbook: "D. Pairing, colour and publishing rules" | 9.
+        # After a pairing is complete, sort the pairs before publishing them.
+        # The sorting criteria are (with descending priority)
+        #
+        # the score of the higher ranked player of the involved pair;
+        # the sum of the scores of both players of the involved pair;
+        # the rank according to the Initial Order (C.04.2.B) of the higher ranked player of the involved pair.
 
-        # Since all chosen round pairings are already ordered by rank of the higher ranked player, this score ignores
-        # the last criterion, relying on the stability of the used sorting algorithm.
+        # Note that for some reason, here, "score" and "ranked" uses the points without acceleration while in all other
+        # cases, like the color criterion E.5, the points with acceleration are used. Or at least that is how
+        # bbpPairings sees it.
+
         if player_1 == player_2:
-            return -1, -1
-        return max(player_1.points, player_2.points), min(player_1.points, player_2.points)
+            return -1, -1, -1
+        if (player_2.points, -player_2.number) > (player_1.points, -player_1.number):
+            player_1, player_2 = player_2, player_1
+
+        return player_1.points, player_2.points, -player_1.number
 
     @staticmethod
     def _get_pairing(player_pair: tuple[Player, Player]) -> Pairing:
-        """Get a pairing from a pair of players."""
+        """Return a pairing from a pair of players."""
         player_1, player_2 = player_pair
 
         # Players are denoted by their starting number, whilst the pairing-allocated bye is denoted by 0.
         if player_1 == player_2:
-            return Pairing(white=player_1.number, black=0)
-        return Pairing(white=player_1.number, black=player_2.number)
+            return Pairing(white=player_1.id, black=0)
+        return Pairing(white=player_1.id, black=player_2.id)
 
     @staticmethod
     def _get_bracket_pairs(bracket_pairer: BracketPairer) -> list[tuple[Player, Player]] | None:
-        """Get the chosen players to be paired in the bracket."""
+        """Return the chosen players to be paired in the bracket."""
         bracket_pairer.determine_heterogeneous_s1()
         bracket_pairer.determine_heterogeneous_s2()
 
@@ -61,20 +67,24 @@ class DutchEngine(PairingEngine):
         player_pairs = []
         round_number = min(len(section.results) for section in trf.player_sections) + 1
 
+        initial_color = trf.x_section.configuration.first_round_color
+        if initial_color is None:
+            initial_color = cls._get_random_inital_color(trf)
+
         players = get_player_infos_from_trf(trf)
         players.sort(reverse=True)
 
-        validity_matcher = ValidityMatcher(players)
+        validity_matcher = ValidityMatcher(players, trf.x_section.forbidden_pairs)
         brackets = Brackets(players, round_number)
 
-        # Check if pairing the next round is possible.
+        # Check whether pairing the next round is possible.
         if not validity_matcher.is_valid_matching():
             raise PairingError("Round can not be paired.")
 
         # Determine bracket pairings and save the results until there are none left.
         while not brackets.is_finished():
             bracket_state = brackets.get_current_bracket()
-            bracket_pairer = BracketPairer(bracket_state, validity_matcher)
+            bracket_pairer = BracketPairer(bracket_state, validity_matcher, initial_color)
             bracket_pairings = cls._get_bracket_pairs(bracket_pairer)
 
             if bracket_pairings is None:

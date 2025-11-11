@@ -13,4 +13,4 @@ class C1(AbsoluteCriterion):
     @classmethod
     def evaluate(cls, player_1: Player, player_2: Player) -> bool:
         """Check whether the given players have already played each other in previous rounds."""
-        return player_1.number not in player_2.opponents
+        return player_1.id not in player_2.opponents

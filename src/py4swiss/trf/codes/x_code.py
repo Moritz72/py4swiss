@@ -2,7 +2,7 @@ from enum import Enum
 
 
 class XCode(str, Enum):
-    """Enum for javafo specific codes."""
+    """javafo specific codes."""
 
     ROUNDS = "XXR"
     ZEROED_IDS = "XXZ"

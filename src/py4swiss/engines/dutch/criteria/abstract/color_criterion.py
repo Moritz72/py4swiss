@@ -15,9 +15,9 @@ class ColorCriterion(ABC):
         players should receive the white pieces.
 
         The returned value should be interpreted in the following way:
-            - `ColorPreferenceSide.WHITE`: `player_1` should get the white pieces
-            - `ColorPreferenceSide.BLACK`: `player_1` should get the black pieces
-            - `ColorPreferenceSide.NONE`: the criterion is not conclusive for the given players
+            - ColorPreferenceSide.WHITE: the former player should get the white pieces
+            - ColorPreferenceSide.BLACK: the latter player should get the white pieces
+            - ColorPreferenceSide.NONE: the criterion is not conclusive for the given players
         """
 
         pass

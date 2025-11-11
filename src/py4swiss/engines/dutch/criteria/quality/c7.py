@@ -48,11 +48,11 @@ class C7(QualityCriterion):
         # potential pairs with MDPs and residents is already determined by C.6, it is sufficient to only handle double
         # floats of MDPs and residents, see C.6 for comparison.
         if not player_1.role == PlayerRole.LOWER:
-            difference = player_1.points - bracket.min_bracket_score + 10
+            difference = player_1.points_with_acceleration - bracket.min_bracket_score + 10
             weight += (zero | 1) << bracket.score_difference_bit_dict[difference]
 
         if not player_2.role == PlayerRole.LOWER:
-            difference = player_2.points - bracket.min_bracket_score + 10
+            difference = player_2.points_with_acceleration - bracket.min_bracket_score + 10
             weight += (zero | 1) << bracket.score_difference_bit_dict[difference]
 
         return weight

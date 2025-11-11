@@ -41,7 +41,8 @@ class C12(QualityCriterion):
         # to count exactly the number of residents in given bracket who received a downloat in the previous round, but
         # will not receive one in this round, in order to get the maximum round pairing weight sum to minimize the
         # number of paired players that receive the same downfloat as the previous round.
-        prevented_double_float_1 = (player_1.float_1 == Float.DOWN) and (player_1.points <= player_2.points)
+        player_2_equal_or_more_points = player_1.points_with_acceleration <= player_2.points_with_acceleration
+        prevented_double_float_1 = (player_1.float_1 == Float.DOWN) and player_2_equal_or_more_points
         prevented_double_float_2 = player_2.float_1 == Float.DOWN
         weight |= int(prevented_double_float_1) + int(prevented_double_float_2)
 

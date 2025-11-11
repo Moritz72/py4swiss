@@ -1,5 +1,6 @@
+from __future__ import annotations
+
 from enum import Enum
-from typing import Self
 
 from pydantic import BaseModel
 
@@ -11,9 +12,13 @@ class ColorPreferenceSide(int, Enum):
     NONE = 0
     BLACK = -1
 
-    def get_opposite(self) -> Self:
+    def get_opposite(self) -> ColorPreferenceSide:
         """Return the opposite side to the given one."""
         return ColorPreferenceSide(-int(self))
+
+    def conflicts(self, other: ColorPreferenceSide) -> bool:
+        """Check whether the given sides conflict with each other e.g. (white, white) or (black, black)."""
+        return self == other and self is not ColorPreferenceSide.NONE
 
 
 class ColorPreferenceStrength(int, Enum):

@@ -18,21 +18,18 @@ class BracketPairer:
         - Determine the exchanges from S2 to S1 in the homogeneous bracket
         - Perform the exchanges between S1 and S2 in the homogeneous bracket
         - Determine the order of S2 in the homogeneous bracket
-        - Check if the chosen set of downfloaters allows for completion of the round pairing
+        - Check whether the chosen set of downfloaters allows for completion of the round pairing
         - If completion is possible, retrieve the chosen pairings after determining colors
     """
 
-    def __init__(self, state: Bracket, validity_matcher: ValidityMatcher) -> None:
-        """
-        Initialize the `BracketPairer`.
-
-        The `BracketPairer` initializes a bracket matcher along with the heterogeneous and homogeneous brackets.
-        """
+    def __init__(self, state: Bracket, validity_matcher: ValidityMatcher, initial_color: bool) -> None:
+        """Initialize a new bracket matcher along with the heterogeneous and homogeneous brackets."""
         self._bracket: Bracket = state
         self._validity_matcher: ValidityMatcher = validity_matcher
+        self._initial_color: bool = initial_color
 
         self._num: int = len(self._bracket.mdp_list + self._bracket.resident_list + self._bracket.lower_list)
-        self._bracket_matcher: BracketMatcher = BracketMatcher(self._bracket)
+        self._bracket_matcher: BracketMatcher = BracketMatcher(self._bracket, self._validity_matcher)
 
         self._heterogeneous_s1: list[Player] = []
         self._heterogeneous_s2: list[Player] = []
@@ -41,7 +38,7 @@ class BracketPairer:
         self._exchanges: int = 0
 
     @staticmethod
-    def _get_player_pair(player_1: Player, player_2: Player) -> tuple[Player, Player]:
+    def _get_player_pair(player_1: Player, player_2: Player, initial_color: bool) -> tuple[Player, Player]:
         """
         Return a tuple of the given players where the first player in the tuple is to receive the white pieces and the
         second player the black pieces in adherence to the color criteria.
@@ -58,6 +55,10 @@ class BracketPairer:
             player_1_color = COLOR_CRITERIA[i].evaluate(player_1, player_2)
             i += 1
 
+        # The E.5 implementation assumes that the first seed gets the white pieces in the first round.
+        if i == len(COLOR_CRITERIA) and not initial_color:
+            player_1_color = player_1_color.get_opposite()
+
         match player_1_color:
             case ColorPreferenceSide.WHITE:
                 return player_1, player_2
@@ -67,23 +68,23 @@ class BracketPairer:
                 raise AssertionError("Unreachable code reached")
 
     def _get_match_role(self, player: Player) -> PlayerRole:
-        """Get the role of the player with which the given player is currently matched."""
+        """Return the role of the player with which the given player is currently matched."""
         return self._bracket_matcher.matching[player].role
 
     def _has_resident_match(self, player: Player) -> bool:
-        """Check if the given player is currently matched to a resident."""
+        """Check whether the given player is currently matched to a resident."""
         return self._get_match_role(player) == PlayerRole.RESIDENT
 
     def _in_s1(self, player: Player) -> bool:
         """
-        Check if the given player is currently considered to be in S1 i.e. matched with a player ranked below them.
+        Check whether the given player is currently considered to be in S1 i.e. matched with a player ranked below them.
         """
         return player > self._bracket_matcher.matching[player] and self._get_match_role(player) == PlayerRole.RESIDENT
 
     def _in_s2(self, player: Player) -> bool:
         """
-        Check if the given player is currently considered to be in S2 i.e. matched with a player ranked above them or
-        not matched at all.
+        Check whether the given player is currently considered to be in S2 i.e. matched with a player ranked above them
+        or not matched at all.
         """
         return player <= self._bracket_matcher.matching[player] or self._get_match_role(player) == PlayerRole.LOWER
 
@@ -318,10 +319,10 @@ class BracketPairer:
                 continue
             # Avoid counting each pair twice.
             if player_1 > player_2:
-                player_pairs.append(self._get_player_pair(player_1, player_2))
+                player_pairs.append(self._get_player_pair(player_1, player_2, self._initial_color))
             # If the current bracket is the LPB, there might be one unpaired player left in the bracket. This player
             # will consequently receive the pairing-allocated bye.
             if player_1.number == player_2.number and self._bracket.last_pairing_bracket:
-                player_pairs.append(self._get_player_pair(player_1, player_2))
+                player_pairs.append(self._get_player_pair(player_1, player_2, self._initial_color))
 
         return player_pairs

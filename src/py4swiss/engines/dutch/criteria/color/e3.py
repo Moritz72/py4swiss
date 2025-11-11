@@ -19,10 +19,8 @@ class E3(ColorCriterion):
         black pieces. For this purpose any unplayed rounds are ignored for both players. If this never occurs the
         criterion is not conclusive.
         """
-        colors_1 = [color for color in player_1.colors if color is not None]
-        colors_2 = [color for color in player_2.colors if color is not None]
 
-        for color_1, color_2 in zip(colors_1[::-1], colors_2[::-1], strict=True):
+        for color_1, color_2 in zip(player_1.colors[::-1], player_2.colors[::-1], strict=False):
             if color_1 != color_2:
                 if color_1:
                     return ColorPreferenceSide.BLACK
