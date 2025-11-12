@@ -2,6 +2,7 @@
 
 [![CI](https://github.com/Moritz72/py4swiss/actions/workflows/ci.yml/badge.svg)](https://github.com/yourusername/yourrepo/actions/workflows/ci.yml)
 [![codecov](https://codecov.io/gh/Moritz72/py4swiss/branch/main/graph/badge.svg)](https://codecov.io/gh/Moritz72/py4swiss)
+[![Python 3.11](https://img.shields.io/badge/python-3.11+-blue)](https://img.shields.io/badge/python-3.11+-blue)
 [![Ruff](https://img.shields.io/badge/linting-ruff-blue)](https://github.com/astral-sh/ruff)
 [![mypy](https://img.shields.io/badge/types-mypy-blue)](https://github.com/python/mypy)
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](LICENSE)
@@ -21,7 +22,23 @@ This file needs to be a **TRF(x)** as defined by the
 Note that unlike *javafo*, if no initial color is provided, *py4swiss* will default to `white1` instead of choosing
 randomly.
 
-## ▶️ Usage
+## Installation
+
+You can install this package directly from PyPI using `pip` via
+
+```bash
+pip install py4swiss
+```
+
+If you prefer, you can also install the latest version from the source repository via
+
+```bash
+git clone https://github.com/Moritz72/py4swiss.git
+cd py4swiss
+pip install .
+```
+
+## ️ ⚙️ Usage
 
 To generate pairings for a given tournament, run
 
