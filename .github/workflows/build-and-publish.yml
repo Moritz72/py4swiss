@@ -13,6 +13,10 @@ jobs:
 
     runs-on: ${{ matrix.os }}
 
+    permissions:
+      contents: read
+      id-token: write
+
     steps:
       - name: Checkout repository
         uses: actions/checkout@v3
@@ -38,8 +42,29 @@ jobs:
       - name: List built files
         run: ls -la dist || true
 
-      - name: Upload to PyPI using Twine
-        run: python -m twine upload dist/*
-        env:
-          TWINE_USERNAME: __token__
-          TWINE_PASSWORD: ${{ github.token }}
+      - name: Upload wheels artifact
+        uses: actions/upload-artifact@v3
+        with:
+          name: dist-${{ matrix.os }}
+          path: dist
+
+  publish:
+    needs: build
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v3
+
+      - name: Download all artifacts
+        uses: actions/download-artifact@v3
+        with:
+          path: dist
+
+      - name: Show downloaded files
+        run: ls -la dist || true
+
+      - name: Publish to PyPI
+        uses: pypa/gh-action-pypi-publish@v1.7.0
+        with:
+          package-dir: dist
+          use-oidc: true
