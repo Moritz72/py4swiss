@@ -1,0 +1,50 @@
+name: CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+  workflow_dispatch:
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+          cache: "pip"
+
+      - name: Install dependencies
+        run: |
+          python -m pip install --upgrade pip
+          pip install -e .[dev]
+
+      - name: Download and install bbpPairings
+        run: |
+          curl -L -o bbpPairings.tar.gz https://github.com/BieremaBoyzProgramming/bbpPairings/releases/download/v5.0.1/bbpPairings-v5.0.1-x86_64-pc-linux.tar.gz
+          tar -xzf bbpPairings.tar.gz
+          cp bbpPairings-v5.0.1/bbpPairings.exe ./bbpPairings.exe
+          chmod +x bbpPairings.exe
+          echo "$PWD" >> $GITHUB_PATH
+
+      - name: Verify bbpPairings
+        run: bbpPairings.exe
+
+      - name: Lint with Ruff
+        run: ruff check --output-format=github .
+
+      - name: Format check with Black
+        run: black --check .
+
+      - name: Type check with Mypy
+        run: mypy
+
+      - name: Run tests
+        run: pytest --cov=py4swiss --cov-report=xml --cov-report=term
