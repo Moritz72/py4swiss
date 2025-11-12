@@ -38,8 +38,8 @@ jobs:
       - name: List built files
         run: ls -la dist || true
 
-      - name: Upload to PyPI
-        uses: pypa/gh-action-pypi-publish@v1.6.0
-        with:
-          user: __token__
-          password: ${{ github.token }}
+      - name: Upload to PyPI using Twine
+        run: python -m twine upload dist/*
+        env:
+          TWINE_USERNAME: __token__
+          TWINE_PASSWORD: ${{ github.token }}
