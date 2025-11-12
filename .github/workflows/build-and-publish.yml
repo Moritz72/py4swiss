@@ -39,9 +39,6 @@ jobs:
         run: |
           cibuildwheel --output-dir dist
 
-      - name: List built files
-        run: ls -la dist || true
-
       - name: Upload wheels artifact
         uses: actions/upload-artifact@v4
         with:
