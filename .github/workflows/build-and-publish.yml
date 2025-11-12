@@ -53,9 +53,9 @@ jobs:
       contents: read
       id-token: write
 
-  environment:
-    name: pypi
-    url: https://pypi.org/p/py4swiss
+    environment:
+      name: pypi
+      url: https://pypi.org/p/py4swiss
 
     steps:
       - name: Checkout repository
