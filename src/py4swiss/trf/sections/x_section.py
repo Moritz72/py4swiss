@@ -166,7 +166,7 @@ class XSection(AbstractSection):
             raise ParsingError("Invalid number of rounds")
 
         configuration_lines = code_line_dict[XCode.CONFIGURATIONS]
-        if len(round_lines) > 1:
+        if len(configuration_lines) > 1:
             raise ParsingError(f"Code '{XCode.CONFIGURATIONS}' is declared twice", row=configuration_lines[1].row)
 
         configuration = XSectionConfiguration()
@@ -241,7 +241,7 @@ class XSection(AbstractSection):
             code_value_pairs.append((XCode.CONFIGURATIONS, configuration_string))
 
         if bool(self.zeroed_ids):
-            code_value_pairs.append((XCode.ZEROED_IDS, self._serialize_integers(list(self.zeroed_ids))))
+            code_value_pairs.append((XCode.ZEROED_IDS, self._serialize_integers(sorted(self.zeroed_ids))))
 
         code_value_pairs.extend(
             (XCode.ACCELERATIONS, self._serialize_player_accelerations(player_id, player_accelerations))
@@ -249,7 +249,7 @@ class XSection(AbstractSection):
         )
 
         code_value_pairs.extend(
-            (XCode.FORBIDDEN_PAIRS, self._serialize_integers(list(pair))) for pair in self.forbidden_pairs
+            (XCode.FORBIDDEN_PAIRS, self._serialize_integers(sorted(pair))) for pair in sorted(self.forbidden_pairs)
         )
 
         return [f"{code.value} {value}" for code, value in code_value_pairs if value is not None]

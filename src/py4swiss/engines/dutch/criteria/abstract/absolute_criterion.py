@@ -10,4 +10,4 @@ class AbsoluteCriterion(ABC):
     @abstractmethod
     def evaluate(cls, player_1: Player, player_2: Player) -> bool:
         """Check whether pairing the given players suffices the absolute criterion."""
-        pass
+        pass  # pragma: no cover

@@ -45,27 +45,29 @@ class TournamentSection(AbstractSection):
     @staticmethod
     def _get_date(string: str, index: int = 0) -> Date:
         """Return a date from the given string."""
-        return TournamentSection._deserialize_date(string, index) or Date(year=0, month=0, day=0)
+        return TournamentSection._deserialize_date(string, index, short=True) or Date(year=0, month=0, day=0)
 
     @staticmethod
     def _serialize_dates_of_the_round(dates_of_the_round: list[Date] | None) -> str | None:
         """Return a TRF conform string representation of the given list of dates."""
         if dates_of_the_round is None:
             return None
-        return " ".join([TournamentSection._serialize_date(date) for date in dates_of_the_round])
+
+        parts = [TournamentSection._serialize_date(date, short=True) for date in dates_of_the_round]
+        return (DATES_START_INDEX - CODE_LENGTH - 1) * " " + " ".join(parts)
 
     @staticmethod
     def _deserialize_dates_of_the_round(string: str, index: int = 0) -> list[Date]:
         """Convert the given string to a list of dates."""
-        min_length = DATES_START_INDEX - CODE_LENGTH
-        if len(string) < min_length:
+        start_index = DATES_START_INDEX - index
+        if len(string) < start_index:
             raise LineError("Incomplete dates of rounds")
-        string = string[DATES_START_INDEX:].rstrip()
+        string = string[start_index:].rstrip()
 
-        step_size = Date.LENGTH + 1
-        parts = [string[i : i + Date.LENGTH] for i in range(0, len(string), step_size)]
+        step_size = Date.LENGTH_SHORT + 1
+        parts = [string[i : i + Date.LENGTH_SHORT] for i in range(0, len(string), step_size)]
 
-        return [TournamentSection._get_date(part, min_length + index + i * step_size) for i, part in enumerate(parts)]
+        return [TournamentSection._get_date(part, start_index + i * step_size) for i, part in enumerate(parts)]
 
     @classmethod
     def from_lines(cls, lines: list[TrfLine]) -> Self:

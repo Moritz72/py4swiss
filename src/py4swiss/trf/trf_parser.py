@@ -2,7 +2,6 @@ from collections import defaultdict
 from pathlib import Path
 
 from py4swiss.trf.codes import PlayerCode, TeamCode, TournamentCode, XCode
-from py4swiss.trf.exceptions import LineError, ParsingError
 from py4swiss.trf.parsed_trf import ParsedTrf
 from py4swiss.trf.sections import (
     PlayerSection,
@@ -16,22 +15,6 @@ from py4swiss.trf.trf_line import TrfLine
 class TrfParser:
     """Parser for TRF(x) files as defined by FIDE and javafo."""
 
-    @staticmethod
-    def _parse_player_line(line: TrfLine) -> PlayerSection:
-        """Convert the given line to a player section."""
-        try:
-            return PlayerSection.from_string(str(line))
-        except LineError as e:
-            raise ParsingError(e.message, row=line.row, column=e.column) from e
-
-    @staticmethod
-    def _parse_team_line(line: TrfLine) -> TeamSection:
-        """Convert the given line to a team section."""
-        try:
-            return TeamSection.from_string(str(line))
-        except LineError as e:
-            raise ParsingError(e.message, row=line.row, column=e.column) from e
-
     @classmethod
     def parse(cls, file_path: Path) -> ParsedTrf:
         """Return a parsed representation of the given TRF(x) file."""
@@ -43,8 +26,8 @@ class TrfParser:
         for line in lines:
             code_lines_dict[line.get_code_type()].append(line)
 
-        player_sections = [cls._parse_player_line(player_line) for player_line in code_lines_dict[PlayerCode]]
-        team_sections = [cls._parse_team_line(team_line) for team_line in code_lines_dict[TeamCode]]
+        player_sections = [PlayerSection.from_string(str(player_line)) for player_line in code_lines_dict[PlayerCode]]
+        team_sections = [TeamSection.from_string(str(team_line)) for team_line in code_lines_dict[TeamCode]]
         tournament_section = TournamentSection.from_lines(code_lines_dict[TournamentCode])
         x_section = XSection.from_lines(code_lines_dict[XCode])
 

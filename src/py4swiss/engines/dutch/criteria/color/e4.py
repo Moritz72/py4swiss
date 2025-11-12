@@ -21,7 +21,9 @@ class E4(ColorCriterion):
         if player_1 > player_2 and bool(player_1.color_preference.side):
             return player_1.color_preference.side
 
-        if player_2 > player_1 and bool(player_2.color_preference.side):
+        # This method is only ever used with player_1 being the higher ranked player. Thus, the following is not
+        # necessary for test coverage.
+        if player_2 > player_1 and bool(player_2.color_preference.side):  # pragma: no cover
             return player_2.color_preference.side.get_opposite()
 
         return ColorPreferenceSide.NONE

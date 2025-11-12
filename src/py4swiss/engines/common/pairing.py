@@ -18,8 +18,8 @@ class Pairing(BaseModel):
 
     def __eq__(self, other: object) -> bool:
         """Check whether given pairings are identical."""
-        if not isinstance(other, Pairing):
-            return False
+        if not isinstance(other, Pairing):  # pragma: no cover
+            return NotImplemented
         return self.white == other.white and self.black == other.black
 
     def __hash__(self) -> int:
@@ -33,15 +33,12 @@ class Pairing(BaseModel):
             lines = [line.rstrip() for line in fh]
         pair_list = [[int(item) for item in line.split(" ")] for line in lines[1:]]
 
-        # Pairs need to consist of exactly two items separated by whitespace or a single item in case of a
-        # pairing-allocated bye.
-        if not all(len(pair) in {1, 2} for pair in pair_list):
+        # Pairs need to consist of exactly two items separated by whitespace.
+        if not all(len(pair) == 1 + 1 for pair in pair_list):
             raise ValueError("Invalid pair")
 
+        # A pair must consist of two distinct IDs.
         for pair in pair_list:
-            if len(pair) == 1:
-                pair.append(0)
-            # A pair must consist of two distinct players.
             if pair[0] == pair[1]:
                 raise ValueError("Invalid pair")
 

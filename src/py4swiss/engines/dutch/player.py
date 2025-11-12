@@ -80,8 +80,8 @@ class Player(BaseModel):
 
     def __eq__(self, other: object) -> bool:
         """Check whether the given players have the same ID."""
-        if not isinstance(other, Player):
-            return False
+        if not isinstance(other, Player):  # pragma: no cover
+            return NotImplemented
         return self.id == other.id
 
     def __hash__(self) -> int:
@@ -161,10 +161,8 @@ def _get_floats(section: PlayerSection, round_number: int, points_list_dict: dic
     #    A player who, for whatever reason, does not play in a round, also receives a downfloat.
 
     player_point_list = points_list_dict[section.starting_number]
-    if len(player_point_list) < round_number:
-        return Float.NONE
-
     round_result = section.results[round_number]
+
     if not round_result.result.is_played():
         return Float.DOWN
 
@@ -186,7 +184,7 @@ def get_player_infos_from_trf(trf: ParsedTrf) -> list[Player]:
     points_list_dict = {section.starting_number: _get_points_list(section, trf.x_section) for section in sections}
 
     round_number = min(len(player.results) for player in sections)
-    max_score = trf.x_section.scoring_point_system.get_max() * round_number
+    max_score = max(trf.x_section.scoring_point_system.score_dict.values()) * round_number
     last_round = round_number == trf.x_section.number_of_rounds - 1
     sections = [player for player in sections if len(player.results) == round_number]
     sections = [player for player in sections if player.starting_number not in trf.x_section.zeroed_ids]

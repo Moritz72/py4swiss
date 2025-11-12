@@ -25,6 +25,8 @@ class E5(ColorCriterion):
                 return ColorPreferenceSide.WHITE
             return ColorPreferenceSide.BLACK
 
-        if bool(player_2.number % 2):
+        # This method is only ever used with player_1 being the higher ranked player. Thus, the following is not
+        # necessary for test coverage.
+        if bool(player_2.number % 2):  # pragma: no cover
             return ColorPreferenceSide.BLACK
-        return ColorPreferenceSide.WHITE
+        return ColorPreferenceSide.WHITE  # pragma: no cover

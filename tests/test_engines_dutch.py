@@ -1,6 +1,11 @@
 import random
 from pathlib import Path
 
+import pytest
+
+from py4swiss.engines import DutchEngine
+from py4swiss.engines.common import PairingError
+from py4swiss.trf import TrfParser
 from py4swiss.trf.sections import XSection
 from py4swiss.trf.sections.x_section import XSectionConfiguration
 from tests.helpers.pairing_engine_clients import (
@@ -13,6 +18,8 @@ from tests.helpers.pairing_engine_comparers import (
     RandomResultsComparerWithShuffle,
 )
 
+DATA_DIRECTORY = Path(__file__).parent / "data"
+
 
 def test_simple(tmp_path: Path) -> None:
     """Compare to bbpPairngs for tournaments with simple conditions."""
@@ -20,13 +27,19 @@ def test_simple(tmp_path: Path) -> None:
     configuration = XSectionConfiguration(first_round_color=True)
 
     x_section = XSection(number_of_rounds=5, configuration=configuration)
-    comparer("small", 9, x_section, 3245)
+    comparer("small_1", 7, x_section, 3245)
+    comparer("small_2", 8, x_section, 4234)
+    comparer("small_2", 9, x_section, 2948)
 
     x_section = XSection(number_of_rounds=7, configuration=configuration)
-    comparer("medium", 33, x_section, 2346)
+    comparer("medium_1", 33, x_section, 2346)
+    comparer("medium_2", 34, x_section, 8568)
+    comparer("medium_3", 35, x_section, 4212)
 
-    x_section = XSection(number_of_rounds=7, configuration=configuration)
-    comparer("large", 80, x_section, 8563)
+    x_section = XSection(number_of_rounds=9, configuration=configuration)
+    comparer("large_1", 78, x_section, 3124)
+    comparer("large_2", 79, x_section, 6346)
+    comparer("large_3", 80, x_section, 8563)
 
 
 def test_forfeits(tmp_path: Path) -> None:
@@ -128,3 +141,42 @@ def test_many_rounds(tmp_path: Path) -> None:
 
     x_section = XSection(number_of_rounds=97, configuration=configuration)
     comparer("large", 99, x_section, 5345)
+
+
+def test_rare_situations(tmp_path: Path) -> None:
+    """Compare to bbpPairngs for rare situations that might not come up in regular testing."""
+    input_file = DATA_DIRECTORY / "dutch_d2_criterion_d.trf"
+    output_file_1 = tmp_path / "dutch_d2_criterion_d_pairings_1.txt"
+    output_file_2 = tmp_path / "dutch_d2_criterion_d_pairings_2.txt"
+
+    pairings_1 = Py4SwissDutchClient.generate_pairings(input_file, output_file_1)
+    pairings_2 = BbpPairingsDutchClient.generate_pairings(input_file, output_file_2)
+
+    assert pairings_1 == pairings_2
+
+    input_file = DATA_DIRECTORY / "dutch_e2_both_absolute_higher_favored.trf"
+    output_file_1 = tmp_path / "dutch_e2_both_absolute_higher_favored_pairings_1.txt"
+    output_file_2 = tmp_path / "dutch_e2_both_absolute_higher_favored_pairings_2.txt"
+
+    pairings_1 = Py4SwissDutchClient.generate_pairings(input_file, output_file_1)
+    pairings_2 = BbpPairingsDutchClient.generate_pairings(input_file, output_file_2)
+
+    assert pairings_1 == pairings_2
+
+    input_file = DATA_DIRECTORY / "dutch_e2_both_absolute_lower_favored.trf"
+    output_file_1 = tmp_path / "dutch_e2_both_absolute_lower_favored_pairings_1.txt"
+    output_file_2 = tmp_path / "dutch_e2_both_absolute_lower_favored_pairings_2.txt"
+
+    pairings_1 = Py4SwissDutchClient.generate_pairings(input_file, output_file_1)
+    pairings_2 = BbpPairingsDutchClient.generate_pairings(input_file, output_file_2)
+
+    assert pairings_1 == pairings_2
+
+
+def test_no_legal_pairing() -> None:
+    """Test whether trying to generate pairings for TRF files with no legal pairings throws pairing errors."""
+    input_file = DATA_DIRECTORY / "no_legal_pairings.trf"
+    parsed_trf = TrfParser.parse(input_file)
+
+    with pytest.raises(PairingError):
+        DutchEngine.generate_pairings(parsed_trf)

@@ -20,4 +20,4 @@ class ColorCriterion(ABC):
             - ColorPreferenceSide.NONE: the criterion is not conclusive for the given players
         """
 
-        pass
+        pass  # pragma: no cover

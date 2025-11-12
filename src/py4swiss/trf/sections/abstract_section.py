@@ -19,13 +19,12 @@ class Date(BaseModel):
         day (int): The day of the date
     """
 
-    YEAR_INDEX: ClassVar[int] = 0
-    MONTH_INDEX: ClassVar[int] = 5
-    DAY_INDEX: ClassVar[int] = 9
     YEAR_LENGTH: ClassVar[int] = 4
+    YEAR_LENGTH_SHORT: ClassVar[int] = 2
     MONTH_LENGTH: ClassVar[int] = 2
     DAY_LENGTH: ClassVar[int] = 2
     LENGTH: ClassVar[int] = 10
+    LENGTH_SHORT: ClassVar[int] = 8
 
     year: int
     month: int
@@ -60,9 +59,6 @@ class AbstractSection(BaseModel, ABC):
     @staticmethod
     def _serialize_decimal(decimal: int | None, padding: int = 0, decimal_places: int = 1) -> str:
         """Return a string representation of the given decimal with optional padding."""
-        if decimal is None:
-            return padding * ""
-
         mod = pow(10, decimal_places)
         return f"{decimal // mod}.{decimal % mod}".rjust(padding)
 
@@ -73,12 +69,16 @@ class AbstractSection(BaseModel, ABC):
         return " ".join([part for part in parts if part is not None])
 
     @staticmethod
-    def _serialize_date(date: Date | None) -> str:
+    def _serialize_date(date: Date | None, short: bool = False) -> str:
         """Return a string representation of the given date."""
         if date is None:
             return Date.LENGTH * ""
 
-        year_string = str(date.year).zfill(Date.YEAR_LENGTH)
+        if short:
+            year_string = str(date.year).zfill(Date.YEAR_LENGTH_SHORT)
+        else:
+            year_string = str(date.year).zfill(Date.YEAR_LENGTH)
+
         month_string = str(date.month).zfill(Date.MONTH_LENGTH)
         day_string = str(date.day).zfill(Date.DAY_LENGTH)
 
@@ -159,15 +159,25 @@ class AbstractSection(BaseModel, ABC):
         return decimals
 
     @staticmethod
-    def _deserialize_date(string: str, index: int = 0) -> Date | None:
+    def _deserialize_date(string: str, index: int = 0, short: bool = False) -> Date | None:
         """Convert the given string to a date (or None in case of an empty string)."""
         if not bool(string.strip()):
             return None
 
         try:
-            year = int(string[Date.YEAR_INDEX : Date.YEAR_LENGTH].strip() or 0)
-            month = int(string[Date.MONTH_INDEX : Date.MONTH_LENGTH].strip() or 0)
-            day = int(string[Date.DAY_INDEX : Date.DAY_LENGTH].strip() or 0)
+            if short:
+                year = int(string[: Date.YEAR_LENGTH_SHORT].strip() or 0)
+                string = string[Date.YEAR_LENGTH_SHORT + 1 :]
+            else:
+                year = int(string[: Date.YEAR_LENGTH].strip() or 0)
+                string = string[Date.YEAR_LENGTH + 1 :]
+
+            month = int(string[: Date.MONTH_LENGTH].strip() or 0)
+            string = string[Date.MONTH_LENGTH + 1 :]
+
+            day = int(string[: Date.DAY_LENGTH].strip() or 0)
+            string = string[Date.DAY_LENGTH + 1 :]
+
             return Date(year=year, month=month, day=day)
         except ValueError as e:
             raise LineError(f"Invalid date '{string}'", column=index + 1) from e

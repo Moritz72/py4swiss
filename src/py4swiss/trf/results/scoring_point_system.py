@@ -1,6 +1,5 @@
 from pydantic import BaseModel
 
-from py4swiss.trf.exceptions import ConsistencyError
 from py4swiss.trf.results.color_token import ColorToken
 from py4swiss.trf.results.result_token import ResultToken
 from py4swiss.trf.results.round_result import RoundResult
@@ -50,6 +49,8 @@ class ScoringPointSystem(BaseModel):
         (ResultToken.WIN, ColorToken.BLACK): 10,
         (ResultToken.DRAW, ColorToken.BLACK): 5,
         (ResultToken.LOSS, ColorToken.BLACK): 0,
+        (ResultToken.FORFEIT_LOSS, ColorToken.BYE_OR_NOT_PAIRED): 0,
+        (ResultToken.FORFEIT_WIN, ColorToken.BYE_OR_NOT_PAIRED): 10,
         (ResultToken.HALF_POINT_BYE, ColorToken.BYE_OR_NOT_PAIRED): 5,
         (ResultToken.FULL_POINT_BYE, ColorToken.BYE_OR_NOT_PAIRED): 10,
         (ResultToken.PAIRING_ALLOCATED_BYE, ColorToken.BYE_OR_NOT_PAIRED): 10,
@@ -104,9 +105,11 @@ class ScoringPointSystem(BaseModel):
             case ScoringPointSystemCode.FORFEIT_WIN:
                 self.score_dict[(ResultToken.FORFEIT_WIN, ColorToken.WHITE)] = points_times_ten
                 self.score_dict[(ResultToken.FORFEIT_WIN, ColorToken.BLACK)] = points_times_ten
+                self.score_dict[(ResultToken.FORFEIT_WIN, ColorToken.BYE_OR_NOT_PAIRED)] = points_times_ten
             case ScoringPointSystemCode.FORFEIT_LOSS:
                 self.score_dict[(ResultToken.FORFEIT_LOSS, ColorToken.WHITE)] = points_times_ten
                 self.score_dict[(ResultToken.FORFEIT_LOSS, ColorToken.BLACK)] = points_times_ten
+                self.score_dict[(ResultToken.FORFEIT_LOSS, ColorToken.BYE_OR_NOT_PAIRED)] = points_times_ten
             case ScoringPointSystemCode.WIN:
                 self.score_dict[(ResultToken.WIN_NOT_RATED, ColorToken.WHITE)] = points_times_ten
                 self.score_dict[(ResultToken.WIN, ColorToken.WHITE)] = points_times_ten
@@ -114,6 +117,7 @@ class ScoringPointSystem(BaseModel):
                 self.score_dict[(ResultToken.WIN, ColorToken.BLACK)] = points_times_ten
                 self.score_dict[(ResultToken.FORFEIT_WIN, ColorToken.WHITE)] = points_times_ten
                 self.score_dict[(ResultToken.FORFEIT_WIN, ColorToken.BLACK)] = points_times_ten
+                self.score_dict[(ResultToken.FORFEIT_WIN, ColorToken.BYE_OR_NOT_PAIRED)] = points_times_ten
                 self.score_dict[(ResultToken.FULL_POINT_BYE, ColorToken.BYE_OR_NOT_PAIRED)] = points_times_ten
             case ScoringPointSystemCode.DRAW:
                 self.score_dict[(ResultToken.DRAW_NOT_RATED, ColorToken.WHITE)] = points_times_ten
@@ -128,18 +132,9 @@ class ScoringPointSystem(BaseModel):
                 self.score_dict[(ResultToken.LOSS, ColorToken.BLACK)] = points_times_ten
                 self.score_dict[(ResultToken.FORFEIT_LOSS, ColorToken.WHITE)] = points_times_ten
                 self.score_dict[(ResultToken.FORFEIT_LOSS, ColorToken.BLACK)] = points_times_ten
+                self.score_dict[(ResultToken.FORFEIT_LOSS, ColorToken.BYE_OR_NOT_PAIRED)] = points_times_ten
                 self.score_dict[(ResultToken.ZERO_POINT_BYE, ColorToken.BYE_OR_NOT_PAIRED)] = points_times_ten
 
     def get_points_times_ten(self, round_result: RoundResult) -> int:
         """Return the number of points times ten awarded for a round result of a player."""
-        color = round_result.color
-        result = round_result.result
-
-        try:
-            return self.score_dict[(result, color)]
-        except IndexError as e:
-            raise ConsistencyError(f"Color '{color.value}' does not match result {result.value}") from e
-
-    def get_max(self) -> int:
-        """Return the maximum amount of points times ten among all possible pairs."""
-        return max(self.score_dict.values())
+        return self.score_dict[(round_result.result, round_result.color)]

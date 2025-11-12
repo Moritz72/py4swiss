@@ -30,7 +30,7 @@ class TrfLine:
         return f"{self.code} {self.content}"
 
     def get_code_type(self) -> type[Code]:
-        """Return code type to which the given line belongs to."""
+        """Return the code type to which the given line belongs to."""
         if self.code in PLAYER_CODES:
             return PlayerCode
         elif self.code in TOURNAMENT_CODES:

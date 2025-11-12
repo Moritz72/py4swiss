@@ -66,10 +66,7 @@ class DutchEngine(PairingEngine):
         """Return the round pairing of the next round for the given TRF."""
         player_pairs = []
         round_number = min(len(section.results) for section in trf.player_sections) + 1
-
         initial_color = trf.x_section.configuration.first_round_color
-        if initial_color is None:
-            initial_color = cls._get_random_inital_color(trf)
 
         players = get_player_infos_from_trf(trf)
         players.sort(reverse=True)

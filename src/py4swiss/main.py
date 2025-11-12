@@ -51,4 +51,5 @@ def main() -> None:
             raise ValueError(f"Invalid pairing engine '{args.engine}'")
 
     trf = TrfParser.parse(args.trf)
-    engine.write_pairings_to_file(trf, args.pairings)
+    pairings = engine.generate_pairings(trf)
+    engine.write_pairings_to_file(pairings, args.pairings)

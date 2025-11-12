@@ -64,7 +64,7 @@ class BracketPairer:
                 return player_1, player_2
             case ColorPreferenceSide.BLACK:
                 return player_2, player_1
-            case _:
+            case _:  # pragma: no cover
                 raise AssertionError("Unreachable code reached")
 
     def _get_match_role(self, player: Player) -> PlayerRole:
@@ -205,9 +205,11 @@ class BracketPairer:
         # Since D.2.a and D.2.b are already accounted for, it is only necessary to determine the highest different BSN
         # among those moved from the original S1 to S2 (D.2.c). This step is performed in a similar fashion as the
         # choice of S1 in the heterogeneous case.
+        exchanges = self._exchanges
+
         for i in range(len(self._homogeneous_s1) - 1, -1, -1):
             # Stop immediately, if there are no more exchanges to be made.
-            if self._exchanges == 0:
+            if exchanges == 0:
                 return
 
             resident = self._homogeneous_s1[i]
@@ -226,11 +228,11 @@ class BracketPairer:
             # exchanged by removing all edge weights with lower ranked residents. Since the current S1 is ordered by
             # BSN, this ensures that D.2.c is adhered to.
             if self._in_s2(resident):
-                self._exchanges -= 1
+                exchanges -= 1
                 self._bracket_matcher.remove_weights(resident, lower_residents)
 
             # Remove the performed modification, as to not interfere with future iterations.
-            elif not was_exchanged:
+            if not was_exchanged:
                 self._bracket_matcher.add_to_weights(resident, lower_residents, 1)
 
     def determine_moves_from_s2_to_s1(self) -> None:
@@ -238,12 +240,14 @@ class BracketPairer:
         # Since D.2.a and D.2.b are already accounted for, it is only necessary to determine the lowest different BSN
         # among those moved from the original S2 to S1 (D.2.d). This step is performed in the exact same way as the
         # moves from S1 to S2.
+        exchanges = self._exchanges
+
         for i, resident in enumerate(self._homogeneous_s2):
             # Stop immediately, if there are no more exchanges to be made.
-            if self._exchanges == 0:
+            if exchanges == 0:
                 return
 
-            higher_residents = self._homogeneous_s1 + self._homogeneous_s2[i + 1 :]
+            higher_residents = self._homogeneous_s1 + self._homogeneous_s2[:i]
             was_exchanged = self._in_s1(resident)
 
             # If the resident is currently in S1, incentivize pairings that would move the resident into S2, i.e. ones
@@ -251,19 +255,19 @@ class BracketPairer:
             # resident to be in S2, if this is possible while still satisfying all quality criteria as well as before
             # this modification.
             if not was_exchanged:
-                self._bracket_matcher.add_to_weights(resident, higher_residents, 1)
+                self._bracket_matcher.add_to_weights(resident, higher_residents, -1)
                 self._bracket_matcher.update_matching()
 
             # If the resident remains in S1 even after the optional modification, finalize the fact that it will be
             # exchanged by removing all edge weights with higher ranked residents. Since the current S2 is ordered by
             # BSN, this ensures that D.2.d is adhered to.
-            if self._in_s2(resident):
-                self._exchanges -= 1
-                self._bracket_matcher.remove_weights(resident, higher_residents[:-1] + self._bracket.lower_list)
+            if not self._in_s2(resident):
+                exchanges -= 1
+                self._bracket_matcher.remove_weights(resident, higher_residents + self._bracket.lower_list)
 
             # Remove the performed modification, as to not interfere with future iterations.
-            elif not was_exchanged:
-                self._bracket_matcher.add_to_weights(resident, higher_residents, -1)
+            if not was_exchanged:
+                self._bracket_matcher.add_to_weights(resident, higher_residents, 1)
 
     def perform_homogeneous_exchanges(self) -> None:
         """Move players to S1 and S2 in the homogeneous bracket as previously determined."""

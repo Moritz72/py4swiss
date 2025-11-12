@@ -67,10 +67,12 @@ class RoundResult(BaseModel):
         #   | (blank) equivalent to Z |
         result_token = ResultToken(string[cls.RESULT_INDEX].upper())
 
-        # Played round results must have an opponent and a color.
+        # Played round results must have an opponent and a color. Similarly, a bye must have no color.
         if result_token.is_played() and not bool(player_id):
             raise ValueError
         if result_token.is_played() and color_token == ColorToken.BYE_OR_NOT_PAIRED:
+            raise ValueError
+        if result_token.is_bye() and color_token != ColorToken.BYE_OR_NOT_PAIRED:
             raise ValueError
 
         return cls(id=player_id, color=color_token, result=result_token)

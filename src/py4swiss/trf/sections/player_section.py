@@ -36,14 +36,14 @@ class Sex(str, Enum):
 class Title(str, Enum):
     """Title of a player."""
 
-    GRANDMASTER = "GM"
-    INTERNATIONAL_MASTER = "IM"
-    WOMEN_GRANDMASTER = "WGM"
-    FIDE_MASTER = "FM"
-    WOMEN_INTERNATIONAL_MASTER = "WIM"
-    CANDIDATE_MASTER = "CM"
-    WOMEN_FIDE_MASTER = "WFM"
-    WOMEN_CANDIDATE_MASTER = "WCM"
+    GRANDMASTER = "gm"
+    INTERNATIONAL_MASTER = "im"
+    WOMEN_GRANDMASTER = "wgm"
+    FIDE_MASTER = "fm"
+    WOMEN_INTERNATIONAL_MASTER = "wim"
+    CANDIDATE_MASTER = "cm"
+    WOMEN_FIDE_MASTER = "wfm"
+    WOMEN_CANDIDATE_MASTER = "wcm"
 
 
 class PlayerSection(AbstractSection):
@@ -74,7 +74,7 @@ class PlayerSection(AbstractSection):
     fide_federation: str | None = None
     fide_number: int | None = None
     birth_date: Date | None = None
-    points_times_ten: int = 0
+    points_times_ten: int
     rank: int
     results: list[RoundResult] = Field(default_factory=list)
 
@@ -110,7 +110,7 @@ class PlayerSection(AbstractSection):
         code = cls._deserialize_enum(string[Index.CODE : Index.STARTING_NUMBER - 1], PlayerCode, Index.CODE)
         starting_number = cls._deserialize_integer(string[Index.STARTING_NUMBER : Index.SEX - 1], Index.STARTING_NUMBER)
         sex = cls._deserialize_enum(string[Index.SEX : Index.TITLE], Sex, Index.SEX + 1)
-        title = cls._deserialize_enum(string[Index.TITLE : Index.NAME - 1], Title, Index.TITLE)
+        title = cls._deserialize_enum(string[Index.TITLE : Index.NAME - 1].lower(), Title, Index.TITLE)
         name = cls._deserialize_string(string[Index.NAME : Index.FIDE_RATING - 1])
         fide_rating = cls._deserialize_integer(string[Index.FIDE_RATING : Index.FIDE_FEDERATION - 1], Index.FIDE_RATING)
         fide_federation = cls._deserialize_string(string[Index.FIDE_FEDERATION : Index.FIDE_NUMBER - 1])

@@ -17,6 +17,7 @@ from tests.helpers.pairing_engine_clients import PairingEngineClient
 
 class PairingEngineComparer(ABC):
     """Abstract callable class for comparing pairing engine clients."""
+
     def __init__(
         self, client_1: type[PairingEngineClient], client_2: type[PairingEngineClient], tmp_path: Path
     ) -> None:
@@ -53,8 +54,10 @@ class PairingEngineComparer(ABC):
 
     def _get_player_sections(self, n: int) -> list[PlayerSection]:
         """Return a list of players sections for the given number."""
-        code = PlayerCode.PLAYER
-        return [PlayerSection(code=code, starting_number=i, name=f"Player {i}", rank=i) for i in range(1, n + 1)]
+        return [
+            PlayerSection(code=PlayerCode.PLAYER, starting_number=i, name=f"Player {i}", points_times_ten=0, rank=i)
+            for i in range(1, n + 1)
+        ]
 
     def _add_result(self, player: PlayerSection, round_result: RoundResult, score_system: ScoringPointSystem) -> None:
         """Add the given result to the given player."""
