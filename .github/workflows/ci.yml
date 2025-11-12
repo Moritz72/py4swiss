@@ -35,7 +35,7 @@ jobs:
           echo "$PWD" >> $GITHUB_PATH
 
       - name: Verify bbpPairings
-        run: bbpPairings --version || ./bbpPairings --version
+        run: bbpPairings
 
       - name: Lint with Ruff
         run: ruff check --output-format=github .
