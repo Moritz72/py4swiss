@@ -43,7 +43,7 @@ jobs:
         run: ls -la dist || true
 
       - name: Upload wheels artifact
-        uses: actions/upload-artifact@v3
+        uses: actions/upload-artifact@v4
         with:
           name: dist-${{ matrix.os }}
           path: dist
