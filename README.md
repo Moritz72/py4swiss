@@ -1,12 +1,16 @@
 # py4swiss
 
-`py4swiss` is a pairing engine for chess tournaments
+[![CI](https://github.com/Moritz72/py4swiss/actions/workflows/ci.yml/badge.svg)](https://github.com/yourusername/yourrepo/actions/workflows/ci.yml)
+[![codecov](https://codecov.io/gh/Moritz72/py4swiss/branch/main/graph/badge.svg)](https://codecov.io/gh/Moritz72/py4swiss)
+[![Ruff](https://img.shields.io/badge/linting-ruff-blue)](https://github.com/astral-sh/ruff)
+[![mypy](https://img.shields.io/badge/types-mypy-blue)](https://github.com/python/mypy)
+[![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](LICENSE)
+
+*py4swiss* is a pairing engine for chess tournaments
 using the [(Swiss) Dutch System](https://handbook.fide.com/chapter/C0403Till2026).
 
 The code is heavily inspired by [bbpPairings](https://github.com/BieremaBoyzProgramming/bbpPairings)
 and also directly utitlizes the maximum weight matching algorithm implemented in there.
-
-This is a work in progress.
 
 ## Tests
 
@@ -28,4 +32,4 @@ for Linux.
 
 This project is licensed under the [MIT License](LICENSE).
 The contents of `/cpp`, however, were copied from [bbpPairings](https://github.com/BieremaBoyzProgramming/bbpPairings)
-and is thus licensed under the [Apache License 2.0](licenses/Apache-2.0.txt).
+and are thus licensed under the [Apache License 2.0](licenses/Apache-2.0.txt).
