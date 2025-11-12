@@ -15,7 +15,6 @@ jobs:
 
     permissions:
       contents: read
-      id-token: write
 
     steps:
       - name: Checkout repository
@@ -47,7 +46,17 @@ jobs:
 
   publish:
     needs: build
+
     runs-on: ubuntu-latest
+
+    permissions:
+      contents: read
+      id-token: write
+
+  environment:
+    name: pypi
+    url: https://pypi.org/p/py4swiss
+
     steps:
       - name: Checkout repository
         uses: actions/checkout@v3
@@ -57,11 +66,23 @@ jobs:
         with:
           path: dist
 
-      - name: Show downloaded files
-        run: ls -la dist || true
+      - name: Show downloaded artifact structure
+        run: |
+          echo "== Top-level structure =="
+          ls -la dist
+          echo ""
+          echo "== Recursive listing =="
+          ls -laR dist || true
+
+      - name: Flatten all distributions
+        run: |
+          mkdir -p all_dists
+          find dist -type f \( -name "*.whl" -o -name "*.tar.gz" -o -name "*.zip" \) -exec cp {} all_dists/ \;
+          echo ""
+          echo "== Files to publish =="
+          ls -la all_dists
 
       - name: Publish to PyPI
-        uses: pypa/gh-action-pypi-publish@v1.7.0
+        uses: pypa/gh-action-pypi-publish@release/v1
         with:
-          package-dir: dist
-          use-oidc: true
+          packages-dir: all_dists
