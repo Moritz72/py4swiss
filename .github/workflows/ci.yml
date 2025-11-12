@@ -30,7 +30,8 @@ jobs:
         run: |
           curl -L -o bbpPairings.tar.gz https://github.com/BieremaBoyzProgramming/bbpPairings/releases/download/v5.0.1/bbpPairings-v5.0.1-x86_64-pc-linux.tar.gz
           tar -xzf bbpPairings.tar.gz
-          cp bbpPairings-v5.0.1-x86_64-pc-linux/bbpPairings.exe ./bbpPairings
+          tar -xf bbpPairings-v5.0.1-x86_64-pc-linux.tar
+          cp bbpPairings-v5.0.1/bbpPairings.exe ./bbpPairings
           chmod +x bbpPairings
           echo "$PWD" >> $GITHUB_PATH
 
