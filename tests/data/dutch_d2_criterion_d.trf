@@ -1,0 +1,44 @@
+001    1      Player 1                                                           0.0    1
+001    2      Player 2                                                           0.0    2
+001    3      Player 3                                                           0.0    3
+001    4      Player 4                                                           0.0    4
+001    5      Player 5                                                           0.0    5
+001    6      Player 6                                                           0.0    6
+001    7      Player 7                                                           0.0    7
+001    8      Player 8                                                           0.0    8
+001    9      Player 9                                                           0.0    9
+001   10      Player 10                                                          0.0   10
+001   11      Player 11                                                          0.0   11
+001   12      Player 12                                                          0.0   12
+XXR 5
+XXC white1
+XXP 1 2
+XXP 1 4
+XXP 1 5
+XXP 1 6
+XXP 1 7
+XXP 1 8
+XXP 1 9
+XXP 1 10
+XXP 1 11
+XXP 1 12
+XXP 2 1
+XXP 2 3
+XXP 2 5
+XXP 2 6
+XXP 2 7
+XXP 2 8
+XXP 2 9
+XXP 2 10
+XXP 2 11
+XXP 2 12
+XXP 5 7
+XXP 5 8
+XXP 5 11
+XXP 5 12
+XXP 6 9
+XXP 6 10
+XXP 6 11
+XXP 6 12
+XXP 7 11
+XXP 9 11
