@@ -8,7 +8,7 @@ from py4swiss.main import main
 
 
 class PairingEngineClient(ABC):
-    """Abstract client for generating pairing from a TRF."""
+    """Abstract client for generating pairings from a TRF."""
 
     @classmethod
     @abstractmethod
@@ -18,6 +18,8 @@ class PairingEngineClient(ABC):
 
 
 class BbpPairingsDutchClient(PairingEngineClient):
+    """Client for generating pairings from a TRF using bbpPairings (dutch)."""
+
     @classmethod
     def generate_pairings(cls, input_file_path: Path, output_file_path: Path) -> list[Pairing]:
         """Generate the pairing of the next round for the given TRF using bbpPairings (Dutch system)."""
@@ -27,9 +29,22 @@ class BbpPairingsDutchClient(PairingEngineClient):
 
 
 class Py4SwissDutchClient(PairingEngineClient):
+    """Client for generating pairings from a TRF using py4swiss with dutch engine."""
+
     @classmethod
     def generate_pairings(cls, input_file_path: Path, output_file_path: Path) -> list[Pairing]:
         """Generate the pairing of the next round for the given TRF using py4swiss (Dutch system)."""
         sys.argv = ["py4swiss", "-e", "dutch", "-t", str(input_file_path), "-p", str(output_file_path)]
+        main()
+        return Pairing.from_file(output_file_path)
+
+
+class Py4SwissDubovClient(PairingEngineClient):
+    """Client for generating pairings from a TRF using py4swiss with dubov engine."""
+
+    @classmethod
+    def generate_pairings(cls, input_file_path: Path, output_file_path: Path) -> list[Pairing]:
+        """Generate the pairing of the next round for the given TRF using py4swiss (Dubov system)."""
+        sys.argv = ["py4swiss", "-e", "dubov", "-t", str(input_file_path), "-p", str(output_file_path)]
         main()
         return Pairing.from_file(output_file_path)
