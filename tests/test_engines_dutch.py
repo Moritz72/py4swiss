@@ -16,13 +16,14 @@ from tests.helpers.pairing_engine_comparers import (
     RandomResultsComparer,
     RandomResultsComparerWithForfeits,
     RandomResultsComparerWithShuffle,
+    RandomResultsComparerWithByes
 )
 
 DATA_DIRECTORY = Path(__file__).parent / "data"
 
 
 def test_simple(tmp_path: Path) -> None:
-    """Compare to bbpPairngs for tournaments with simple conditions."""
+    """Compare to bbpPairings for tournaments with simple conditions."""
     comparer = RandomResultsComparer(Py4SwissDutchClient, BbpPairingsDutchClient, tmp_path)
     configuration = XSectionConfiguration(first_round_color=True)
 
@@ -43,7 +44,7 @@ def test_simple(tmp_path: Path) -> None:
 
 
 def test_forfeits(tmp_path: Path) -> None:
-    """Compare to bbpPairngs for tournaments with forfeits."""
+    """Compare to bbpPairings for tournaments with forfeits."""
     comparer = RandomResultsComparerWithForfeits(Py4SwissDutchClient, BbpPairingsDutchClient, tmp_path, 0.2)
     configuration = XSectionConfiguration(first_round_color=True)
 
@@ -57,23 +58,23 @@ def test_forfeits(tmp_path: Path) -> None:
     comparer("large", 85, x_section, 3244)
 
 
-# def test_byes(tmp_path: Path) -> None:
-#     """Compare to bbpPairngs for tournaments with byes."""
-#     comparer = RandomResultsComparerWithByes(Py4SwissDutchClient, BbpPairingsDutchClient, tmp_path, 0.2)
-#     configuration = XSectionConfiguration(first_round_color=True)
-#
-#     x_section = XSection(number_of_rounds=4, configuration=configuration)
-#     comparer("small", 10, x_section, 7682)
-#
-#     x_section = XSection(number_of_rounds=7, configuration=configuration)
-#     comparer("medium", 27, x_section, 4674)
-#
-#     x_section = XSection(number_of_rounds=8, configuration=configuration)
-#     comparer("large", 89, x_section, 2435)
+def test_byes(tmp_path: Path) -> None:
+    """Compare to bbpPairings for tournaments with byes."""
+    comparer = RandomResultsComparerWithByes(Py4SwissDutchClient, BbpPairingsDutchClient, tmp_path, 0.2)
+    configuration = XSectionConfiguration(first_round_color=True)
+
+    x_section = XSection(number_of_rounds=4, configuration=configuration)
+    comparer("small", 10, x_section, 7682)
+
+    x_section = XSection(number_of_rounds=7, configuration=configuration)
+    comparer("medium", 27, x_section, 4674)
+
+    x_section = XSection(number_of_rounds=8, configuration=configuration)
+    comparer("large", 89, x_section, 2435)
 
 
 def test_configuration(tmp_path: Path) -> None:
-    """Compare to bbpPairngs for tournaments with various configurations."""
+    """Compare to bbpPairings for tournaments with various configurations."""
     comparer = RandomResultsComparerWithShuffle(Py4SwissDutchClient, BbpPairingsDutchClient, tmp_path)
 
     configuration = XSectionConfiguration(first_round_color=False)
@@ -90,7 +91,7 @@ def test_configuration(tmp_path: Path) -> None:
 
 
 def test_acceleration(tmp_path: Path) -> None:
-    """Compare to bbpPairngs for tournaments with accelerated rounds."""
+    """Compare to bbpPairings for tournaments with accelerated rounds."""
     comparer = RandomResultsComparer(Py4SwissDutchClient, BbpPairingsDutchClient, tmp_path)
     configuration = XSectionConfiguration(first_round_color=True)
 
@@ -109,7 +110,7 @@ def test_acceleration(tmp_path: Path) -> None:
 
 
 def test_forbidden_pairs(tmp_path: Path) -> None:
-    """Compare to bbpPairngs for tournaments with forbidden pairs."""
+    """Compare to bbpPairings for tournaments with forbidden pairs."""
     comparer = RandomResultsComparer(Py4SwissDutchClient, BbpPairingsDutchClient, tmp_path)
     configuration = XSectionConfiguration(first_round_color=True)
 
@@ -129,7 +130,7 @@ def test_forbidden_pairs(tmp_path: Path) -> None:
 
 
 def test_many_rounds(tmp_path: Path) -> None:
-    """Compare to bbpPairngs for tournaments with a lot of rounds in relation to the number of participants."""
+    """Compare to bbpPairings for tournaments with a lot of rounds in relation to the number of participants."""
     comparer = RandomResultsComparer(Py4SwissDutchClient, BbpPairingsDutchClient, tmp_path)
     configuration = XSectionConfiguration(first_round_color=True)
 
@@ -144,7 +145,7 @@ def test_many_rounds(tmp_path: Path) -> None:
 
 
 def test_rare_situations(tmp_path: Path) -> None:
-    """Compare to bbpPairngs for rare situations that might not come up in regular testing."""
+    """Compare to bbpPairings for rare situations that might not come up in regular testing."""
     input_file = DATA_DIRECTORY / "dutch_d2_criterion_d.trf"
     output_file_1 = tmp_path / "dutch_d2_criterion_d_pairings_1.txt"
     output_file_2 = tmp_path / "dutch_d2_criterion_d_pairings_2.txt"
