@@ -94,7 +94,11 @@ jobs:
         if: startsWith(matrix.os, 'windows')
         shell: pwsh
         run: |
-          python -m nuitka --onefile --include-package-data=py4swiss --output-dir=dist $env:ENTRYPOINT
+          python -m nuitka `
+            --onefile `
+            --include-package-data=py4swiss `
+            --output-dir=dist `
+            "${{ steps.entry_windows.outputs.ENTRYPOINT }}"
 
       - name: Upload binary artifact
         uses: actions/upload-artifact@v4
