@@ -94,6 +94,8 @@ jobs:
       - name: Build with Nuitka (Windows)
         if: startsWith(matrix.os, 'windows')
         shell: pwsh
+        env:
+          NUITKA_ALLOW_DOWNLOADING_DEPENDENCIES: "1"
         run: |
           $entry = "${{ steps.entry_windows.outputs.ENTRYPOINT }}"
           Write-Host "Compiling: $entry"
