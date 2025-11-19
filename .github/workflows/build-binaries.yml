@@ -79,20 +79,22 @@ jobs:
               exit 1
           }
 
-      - name: Build with Nuitka (onefile)
+      - name: Build with Nuitka (Unix)
+        if: startsWith(matrix.os, 'ubuntu') || startsWith(matrix.os, 'macos')
         shell: bash
         run: |
-          if [ "${{ matrix.os }}" = "windows-latest" ]; then
-            ENTRY=${{ steps.entry_windows.outputs.ENTRYPOINT }}
-          else
-            ENTRY=${{ steps.entry_unix.outputs.ENTRYPOINT }}
-          fi
-
+          ENTRY=${{ steps.entry_unix.outputs.ENTRYPOINT }}
           python -m nuitka \
             --onefile \
             --include-package-data=py4swiss \
             --output-dir=dist \
             "$ENTRY"
+
+      - name: Build with Nuitka (Windows)
+        if: startsWith(matrix.os, 'windows')
+        shell: pwsh
+        run: |
+          python -m nuitka --onefile --include-package-data=py4swiss --output-dir=dist $env:ENTRYPOINT
 
       - name: Upload binary artifact
         uses: actions/upload-artifact@v4
