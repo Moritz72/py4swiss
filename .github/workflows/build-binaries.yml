@@ -99,12 +99,11 @@ jobs:
       - name: Build with Nuitka (Windows)
         if: startsWith(matrix.os, 'windows')
         shell: pwsh
+        env:
+          NUITKA_DEPENDS_EXECUTABLE: C:\ProgramData\chocolatey\bin\depends.exe
         run: |
           $entry = "${{ steps.entry_windows.outputs.ENTRYPOINT }}"
           Write-Host "Compiling: $entry"          
-          
-          $env:NUITKA_DEPENDS_EXECUTABLE = 'C:\ProgramData\chocolatey\bin\depends.exe'
-          
           python -m nuitka `
             --onefile `
             --include-package-data=py4swiss `
