@@ -39,6 +39,11 @@ jobs:
         if: startsWith(matrix.os, 'windows')
         uses: ilammy/msvc-dev-cmd@v1
 
+      - name: Install Dependency Walker
+        if: startsWith(matrix.os, 'windows')
+        run: |
+          choco install dependencywalker -y
+
       - name: Cache pip
         uses: actions/cache@v4
         with:
@@ -96,10 +101,7 @@ jobs:
         shell: pwsh
         run: |
           $entry = "${{ steps.entry_windows.outputs.ENTRYPOINT }}"
-          Write-Host "Compiling: $entry"
-          
-          $env:NUITKA_ALLOW_DOWNLOADING_DEPENDENCIES = "1"
-          
+          Write-Host "Compiling: $entry"          
           python -m nuitka `
             --onefile `
             --include-package-data=py4swiss `
