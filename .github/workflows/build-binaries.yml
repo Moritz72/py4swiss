@@ -71,30 +71,6 @@ jobs:
         id: entry_windows
         shell: pwsh
         run: |
-          $ep = python -c 'import shutil; print(shutil.which("py4swiss") or "")'
-          "$('ENTRYPOINT=' + $ep)" | Out-File -FilePath $Env:GITHUB_OUTPUT -Encoding utf8 -Append
-          if ([string]::IsNullOrEmpty($ep)) {
-              Write-Host "ERROR: 'py4swiss' not found on PATH after pip install. Listing files for debugging:"
-              Get-ChildItem -Recurse -Force | Select-Object -First 200
-              exit 1
-          }
-
-      - name: Build with Nuitka (Unix)
-        if: startsWith(matrix.os, 'ubuntu') || startsWith(matrix.os, 'macos')
-        shell: bash
-        run: |
-          ENTRY=${{ steps.entry_unix.outputs.ENTRYPOINT }}
-          python -m nuitka \
-            --onefile \
-            --include-package-data=py4swiss \
-            --output-dir=dist \
-            "$ENTRY"
-
-      - name: Find entrypoint script (windows)
-        if: startsWith(matrix.os, 'windows')
-        id: entry_windows
-        shell: pwsh
-        run: |
           $exe = python -c 'import shutil; print(shutil.which("py4swiss") or "")'
           if ([string]::IsNullOrEmpty($exe)) {
               Write-Host "ERROR: py4swiss.exe not found"
@@ -109,6 +85,27 @@ jobs:
               Write-Host "ERROR: Python script not found at $script"
               exit 1
           }
+
+      - name: Build with Nuitka (Unix)
+        if: startsWith(matrix.os, 'ubuntu') || startsWith(matrix.os, 'macos')
+        shell: bash
+        run: |
+          ENTRY=${{ steps.entry_unix.outputs.ENTRYPOINT }}
+          python -m nuitka \
+            --onefile \
+            --include-package-data=py4swiss \
+            --output-dir=dist \
+            "$ENTRY"
+
+      - name: Build with Nuitka (Windows)
+        if: startsWith(matrix.os, 'windows')
+        shell: pwsh
+        run: |
+          python -m nuitka `
+            --onefile `
+            --include-package-data=py4swiss `
+            --output-dir=dist `
+            "${{ steps.entry_windows.outputs.ENTRYPOINT }}"
 
       - name: Upload binary artifact
         uses: actions/upload-artifact@v4
