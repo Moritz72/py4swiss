@@ -90,15 +90,25 @@ jobs:
             --output-dir=dist \
             "$ENTRY"
 
-      - name: Build with Nuitka (Windows)
+      - name: Find entrypoint script (windows)
         if: startsWith(matrix.os, 'windows')
+        id: entry_windows
         shell: pwsh
         run: |
-          python -m nuitka `
-            --onefile `
-            --include-package-data=py4swiss `
-            --output-dir=dist `
-            "${{ steps.entry_windows.outputs.ENTRYPOINT }}"
+          $exe = python -c 'import shutil; print(shutil.which("py4swiss") or "")'
+          if ([string]::IsNullOrEmpty($exe)) {
+              Write-Host "ERROR: py4swiss.exe not found"
+              exit 1
+          }
+
+          $script = $exe -replace '\.exe$', '-script.py'
+
+          "ENTRYPOINT=$script" | Out-File -FilePath $Env:GITHUB_OUTPUT -Encoding utf8 -Append
+
+          if (-Not (Test-Path $script)) {
+              Write-Host "ERROR: Python script not found at $script"
+              exit 1
+          }
 
       - name: Upload binary artifact
         uses: actions/upload-artifact@v4
