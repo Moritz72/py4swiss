@@ -104,9 +104,20 @@ jobs:
             --output-dir=dist `
             "$entry"
 
-      - name: Upload binary artifact
+      - name: Prepare single binary for artifact
+        run: |
+          mkdir -p release
+          if [[ "${{ matrix.os }}" == "ubuntu-latest" ]]; then
+            cp dist/py4swiss.bin release/py4swiss-linux
+          elif [[ "${{ matrix.os }}" == "macos-latest" ]]; then
+            cp dist/py4swiss.bin release/py4swiss-macos
+          elif [[ "${{ matrix.os }}" == "windows-latest" ]]; then
+            cp dist/main.exe release/py4swiss-windows.exe
+          fi
+
+      - name: Upload single binary artifact
         uses: actions/upload-artifact@v4
         with:
           name: py4swiss-${{ matrix.os }}
-          path: dist/
+          path: release/
           if-no-files-found: error
