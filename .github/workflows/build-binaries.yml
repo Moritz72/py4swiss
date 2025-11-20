@@ -1,0 +1,134 @@
+name: Build Nuitka Binaries
+
+on:
+  push:
+    tags:
+      - 'v*.*.*'
+  workflow_dispatch:
+
+jobs:
+  build:
+    name: Build on ${{ matrix.os }}
+    runs-on: ${{ matrix.os }}
+    strategy:
+      matrix:
+        os: [ubuntu-latest, macos-latest, windows-latest]
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+
+      - name: Install Linux build tools
+        if: startsWith(matrix.os, 'ubuntu')
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y build-essential python3-dev patchelf upx pkg-config zlib1g-dev libssl-dev
+
+      - name: Install macOS CLT
+        if: startsWith(matrix.os, 'macos')
+        run: |
+          xcode-select -p || xcode-select --install || true
+
+      - name: Setup MSVC
+        if: startsWith(matrix.os, 'windows')
+        uses: ilammy/msvc-dev-cmd@v1
+
+      - name: Cache pip
+        uses: actions/cache@v4
+        with:
+          path: ~/.cache/pip
+          key: ${{ runner.os }}-pip-${{ hashFiles('**/pyproject.toml') }}
+          restore-keys: |
+            ${{ runner.os }}-pip-
+
+      - name: Install dependencies
+        run: |
+          python -m pip install --upgrade pip setuptools wheel
+          python -m pip install . nuitka
+
+      - name: Find entrypoint script (unix)
+        if: startsWith(matrix.os, 'ubuntu') || startsWith(matrix.os, 'macos')
+        id: entry_unix
+        shell: bash
+        run: |
+          ENTRYPOINT=$(python -c "import shutil; print(shutil.which('py4swiss') or '')")
+          echo "ENTRYPOINT=$ENTRYPOINT" >> $GITHUB_OUTPUT
+          if [ -z "$ENTRYPOINT" ]; then
+            echo "ERROR: 'py4swiss' not found on PATH after pip install. Listing files for debugging:"
+            ls -la
+            ls -la ~/.local/bin || true
+            exit 1
+          fi
+
+      - name: Find entrypoint script (windows)
+        if: startsWith(matrix.os, 'windows')
+        id: entry_windows
+        shell: pwsh
+        run: |
+          $entry = python -c "import py4swiss.main as m; print(m.__file__)"
+          $entry = $entry.Trim()
+          if (-Not (Test-Path $entry)) {
+              Write-Host "ERROR: py4swiss.main module not found at $entry"
+              exit 1
+          }
+          Write-Host "Found py4swiss entry at: $entry"
+          $("ENTRYPOINT=" + $entry) | Out-File -FilePath $Env:GITHUB_OUTPUT -Encoding utf8 -Append
+
+      - name: Build with Nuitka (Unix)
+        if: startsWith(matrix.os, 'ubuntu') || startsWith(matrix.os, 'macos')
+        shell: bash
+        run: |
+          ENTRY=${{ steps.entry_unix.outputs.ENTRYPOINT }}
+          python -m nuitka \
+            --onefile \
+            --include-package-data=py4swiss \
+            --output-dir=dist \
+            "$ENTRY"
+
+      - name: Build with Nuitka (Windows)
+        if: startsWith(matrix.os, 'windows')
+        shell: pwsh
+        run: |
+          $entry = "${{ steps.entry_windows.outputs.ENTRYPOINT }}"
+          Write-Host "Compiling: $entry"          
+          python -m nuitka `
+            --onefile `
+            --assume-yes-for-downloads `
+            --include-package-data=py4swiss `
+            --output-dir=dist `
+            "$entry"
+
+      - name: Prepare single binary for artifact
+        shell: bash
+        run: |
+          mkdir -p release
+          if [[ "${{ matrix.os }}" == "ubuntu-latest" ]]; then
+            cp dist/py4swiss.bin release/py4swiss-linux
+          elif [[ "${{ matrix.os }}" == "macos-latest" ]]; then
+            cp dist/py4swiss.bin release/py4swiss-macos
+          elif [[ "${{ matrix.os }}" == "windows-latest" ]]; then
+            cp dist/main.exe release/py4swiss-windows.exe
+          fi
+        if: runner.os != 'Windows'
+
+      - name: Prepare single binary for artifact (Windows)
+        shell: pwsh
+        run: |
+          New-Item -ItemType Directory -Path release -Force
+          if ($Env:RUNNER_OS -eq "Windows") {
+              Copy-Item dist\main.exe release\py4swiss-windows.exe
+          }
+        if: runner.os == 'Windows'
+
+      - name: Upload single binary artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: py4swiss-${{ matrix.os }}
+          path: release/
+          if-no-files-found: error
+          retention-days: 1
