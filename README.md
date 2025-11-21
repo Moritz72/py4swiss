@@ -1,4 +1,4 @@
-# ♟️🇨🇭 py4swiss
+# ♟️ py4swiss
 
 [![CI](https://github.com/Moritz72/py4swiss/actions/workflows/ci.yml/badge.svg)](https://github.com/yourusername/yourrepo/actions/workflows/ci.yml)
 [![codecov](https://codecov.io/gh/Moritz72/py4swiss/branch/main/graph/badge.svg)](https://codecov.io/gh/Moritz72/py4swiss)
@@ -12,6 +12,8 @@
 The code is heavily inspired by [bbpPairings](https://github.com/BieremaBoyzProgramming/bbpPairings)
 and also directly utitlizes the maximum weight matching algorithm implemented there.
 
+Supports Windows, Linux (Ubuntu), and macOS.
+
 ## 📄 Tournament Report File
 
 For generation of pairings, an input file containing the entire history of the tournament up until this point is
@@ -22,7 +24,7 @@ This file needs to be a **TRF(x)** as defined by the
 Note that unlike *javafo*, if no initial color is provided, *py4swiss* will default to `white1` instead of choosing
 randomly.
 
-## Installation
+## 📦 Installation
 
 You can install this package directly from PyPI using `pip` via
 
@@ -38,6 +40,8 @@ cd py4swiss
 pip install .
 ```
 
+Pre-built binary files for each supported OS are also available in the
+[Releases section](https://github.com/Moritz72/py4swiss/releases).
 ## ️ ⚙️ Usage
 
 To generate pairings for a given tournament, run
