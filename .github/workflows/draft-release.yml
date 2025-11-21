@@ -1,0 +1,40 @@
+name: Draft GitHub Release
+
+on:
+  workflow_run:
+    workflows:
+      - "Build Nuitka Binaries"
+    types:
+      - completed
+
+permissions:
+  contents: write
+
+jobs:
+  draft_release:
+    if: ${{ github.event.workflow_run.conclusion == 'success' && startsWith(github.event.workflow_run.head_branch, 'v') }}
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Download artifacts from the Build workflow run
+        uses: actions/download-artifact@v4
+        with:
+          run-id: ${{ github.event.workflow_run.id }}
+          path: artifacts
+
+      - name: Show downloaded files (debug)
+        run: ls -R artifacts
+
+      - name: Create draft release and upload assets
+        uses: softprops/action-gh-release@v2
+        with:
+          tag_name: ${{ github.event.workflow_run.head_branch }}
+          draft: true
+          files: |
+            artifacts/**/release/**
+
+      - name: Add release body (optional)
+        if: always()
+        run: |
+          echo "Draft release created for ${{ github.event.workflow_run.head_branch }}."
+          echo "Build run id: ${{ github.event.workflow_run.id }}. Binaries attached from artifacts/**/release/."
