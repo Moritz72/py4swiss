@@ -17,9 +17,13 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
-      - name: Download artifacts from the Build workflow run
-        uses: actions/download-artifact@v4
+      - name: Checkout repo
+        uses: actions/checkout@v3
+
+      - name: Download artifacts from upstream workflow
+        uses: dawidd6/action-download-artifact@v3
         with:
+          workflow: Build Nuitka Binaries
           run-id: ${{ github.event.workflow_run.id }}
           path: artifacts
 
@@ -31,8 +35,7 @@ jobs:
         with:
           tag_name: ${{ github.event.workflow_run.head_branch }}
           draft: true
-          files: |
-            artifacts/**/release/**
+          files: artifacts/**/release/**
 
       - name: Add release body (optional)
         if: always()
