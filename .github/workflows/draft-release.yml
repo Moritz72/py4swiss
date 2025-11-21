@@ -35,7 +35,8 @@ jobs:
         with:
           tag_name: ${{ github.event.workflow_run.head_branch }}
           draft: true
-          files: artifacts/**/release/**
+          files: |
+            artifacts/py4swiss-*-latest/py4swiss-*
 
       - name: Add release body (optional)
         if: always()
