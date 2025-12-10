@@ -139,7 +139,7 @@ def _get_color_preference(section: PlayerSection) -> ColorPreference:
         return ColorPreference(side=side, strength=ColorPreferenceStrength.STRONG)
     if side != ColorPreferenceSide.NONE:
         return ColorPreference(side=side, strength=ColorPreferenceStrength.MILD)
-    return ColorPreference(side=side, strength=ColorPreferenceStrength.NONE)
+    return ColorPreference(side=ColorPreferenceSide.BLACK, strength=ColorPreferenceStrength.MILD)
 
 
 def _get_floats(section: PlayerSection, points_list_dict: dict[int, list[int]]) -> tuple[int, bool]:
@@ -179,7 +179,7 @@ def _get_aro(sections: list[PlayerSection]) -> dict[int, int]:
     # 1.7.2 ARO is computed for each player after each round as a basis for the pairings of the next round.
     # 1.7.3 If a player has yet to play a game, their ARO is zero.
     for section in sections:
-        ratings = {rating_dict[round_result.id] for round_result in section.results if round_result.result.is_played()}
+        ratings = [rating_dict[round_result.id] for round_result in section.results if round_result.result.is_played()]
         aro_dict[section.starting_number] = round(sum(ratings) / max(len(ratings), 1))
 
     return aro_dict

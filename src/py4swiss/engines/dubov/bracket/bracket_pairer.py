@@ -100,20 +100,17 @@ class BracketPairer:
                 self._bracket_matcher.add_to_weights(player, self._g1, 1)
                 self._bracket_matcher.update_matching()
 
+                # Remove the performed modification, as to not interfere with future iterations.
+                self._bracket_matcher.add_to_weights(player, self._g1, -1)
+
             # If the player is now matched to a player in G1, finalize the fact that it will be matched to a player in
             # G1 by removing all edge weights with players in G2.
             if self._has_g1_match(player):
+                print(f"G1 to G2 {player.number}")
                 exchanges -= 1
                 self._bracket_matcher.remove_weights(player, self._g2)
-
-            # Remove the performed modification, as to not interfere with future iterations.
-            if not was_exchanged:
-                self._bracket_matcher.add_to_weights(player, self._g1, -1)
-
-        # Shift player from G1 to G2.
-        shifters = {player for player in self._g1 if self._has_g1_match(player)}
-        self._g1 = [player for player in self._g1 if player not in shifters]
-        self._g2 += list(shifters)
+                self._g1.remove(player)
+                self._g2.append(player)
 
     def _shift_from_g2_to_g1(self) -> None:
         """Shift players from G2 to G1."""
@@ -143,20 +140,17 @@ class BracketPairer:
                 self._bracket_matcher.add_to_weights(player, self._g2, 1)
                 self._bracket_matcher.update_matching()
 
+                # Remove the performed modification again, as to not interfere with future iterations.
+                self._bracket_matcher.add_to_weights(player, self._g2, -1)
+
             # If the player is now matched to a player in G2, finalize the fact that it will be matched to a player in
             # G2 by removing all edge weights with players in G1.
             if self._has_g2_match(player):
+                print(f"G2 to G1 {player.number}")
                 exchanges -= 1
                 self._bracket_matcher.remove_weights(player, self._g1)
-
-            # Remove the performed modification, as to not interfere with future iterations.
-            if not was_exchanged:
-                self._bracket_matcher.add_to_weights(player, self._g2, -1)
-
-        # Shift player from G2 to G1.
-        shifters = {player for player in self._g2 if self._has_g2_match(player)}
-        self._g2 = [player for player in self._g2 if player not in shifters]
-        self._g1 += list(shifters)
+                self._g2.remove(player)
+                self._g1.append(player)
 
     def determine_initial_g1_and_g2(self) -> None:
         """Determine the initial compositions of G1 and G2."""
@@ -186,7 +180,7 @@ class BracketPairer:
         for player in potential_upfloaters:
             # Stop immediately, if there are no more exchanges to be made.
             if upfloaters == 0:
-                return
+                break
 
             was_upfloater = self._has_resident_match(player)
 
@@ -197,15 +191,14 @@ class BracketPairer:
                 self._bracket_matcher.add_to_weights(player, self._bracket.resident_list, 1)
                 self._bracket_matcher.update_matching()
 
+                # Remove the performed modification, as to not interfere with future iterations.
+                self._bracket_matcher.add_to_weights(player, self._bracket.resident_list, -1)
+
             # If the player is now matched to a resident, finalize the fact that it will be to a resdient by removing
             # all edge weights with non-residents.
             if self._has_resident_match(player):
                 upfloaters -= 1
                 self._bracket_matcher.remove_weights(player, potential_upfloaters)
-
-            # Remove the performed modification, as to not interfere with future iterations.
-            if not was_upfloater:
-                self._bracket_matcher.add_to_weights(player, self._bracket.resident_list, -1)
 
         # Finalize the players to be paired in this bracket.
         player_list = self._bracket.resident_list
@@ -223,6 +216,8 @@ class BracketPairer:
         else:
             self._g1 = [player for player in player_list if player.color_preference.side == ColorPreferenceSide.WHITE]
         self._g2 = [player for player in player_list if player not in self._g1]
+        print("G1", [p.number for p in self._g1])
+        print("G2", [p.number for p in self._g2])
 
     def perform_g1_g2_recomposition(self) -> None:
         """Perform the recomposition of G1 and G2."""
@@ -235,6 +230,14 @@ class BracketPairer:
         #    the larger subgroup, and shift those players into the smaller subgroup.
         # Note: Best, in both instances, means the first set of players (first in the order given by Article 4.3) that
         # can yield a legal pairing that complies at best with [C7] (see Article 2.3.3).
+
+        original_g1 = self._g1.copy()
+        original_g2 = self._g2.copy()
+
+        # Incentivize pairings between G1 and G2
+        for player in original_g1:
+            self._bracket_matcher.add_to_weights(player, original_g2, 2)
+        self._bracket_matcher.update_matching()
 
         # FIDE handbook: "4.3 Sorting the Shifters | 4.3.2"
         # White seekers are sorted in order of ascending ARO or, when AROs are equal, ascending TPN. Black seekers are
@@ -258,6 +261,10 @@ class BracketPairer:
         else:
             self._shift_from_g1_to_g2()
 
+        # Remove the earlier given incentive again
+        for player in original_g1:
+            self._bracket_matcher.add_to_weights(player, original_g2, -2)
+
     def transpose_g2(self) -> None:
         """Choose T2 i.e. determine the order of G2."""
         # FIDE handbook: "3.2 Pairing Process for a Bracket | 3.2.5"
@@ -274,6 +281,9 @@ class BracketPairer:
         self._g1.sort(key=lambda p: (p.aro, p.number))
         self._g2.sort(key=lambda p: p.number)
 
+        print("Sorted G1", [p.number for p in self._g1])
+        print("Initial T2", [p.number for p in self._g2])
+
         # FIDE handbook: "3.2 Pairing Process for a Bracket | 3.2.5"
         # Choose T2, which is the first such transposition of G2 players (transpositions are sorted by Article 4.4) that
         # can yield a legal pairing, according to the following generation rule: the first player of S1 is paired with
@@ -288,9 +298,18 @@ class BracketPairer:
             self._bracket_matcher.update_matching()
 
             match = self._bracket_matcher.matching[player]
+            if (player.number, match.number) == (22, 33):
+                for q in self._g1:
+                    index_1 = self._bracket_matcher._index_dict[q]
+                    for p in self._g2:
+                        index_2 = self._bracket_matcher._index_dict[p]
+                        value = str(self._bracket_matcher._weights[index_1][index_2])
+                        if value != "0":
+                            print(q.number, p.number, value)
 
             # Finalize the pairing of the player in G1 and the chosen player in G2 so that it does not get overwritten
             # in the future. This ensures that players in G1 with lower index take precedence.
+            print("Finalize", player.number, match.number)
             self._bracket_matcher.finalize_match(player, match)
 
     def get_player_pairs(self) -> list[tuple[Player, Player]]:

@@ -94,7 +94,7 @@ class Bracket(BaseModel):
             resident_list=[player for player in player_list if player.role == PlayerRole.RESIDENT],
             lower_list=[player for player in player_list if player.role == PlayerRole.LOWER],
             is_first_round=round_number == 1,
-            is_last_round=round_number == number_of_rounds - 1,
+            is_last_round=round_number == number_of_rounds,
             bracket_bits=sum(player.role == PlayerRole.RESIDENT for player in player_list).bit_length(),
             score_difference_total_bits=score_difference_total_bits,
             score_difference_bit_dict=score_difference_bit_dict,

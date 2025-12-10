@@ -1,4 +1,4 @@
-from py4swiss.engines.common.color_preference import ColorPreferenceSide
+from py4swiss.engines.common import ColorPreferenceSide
 from py4swiss.engines.dubov.criteria.abstract import ColorCriterion
 from py4swiss.engines.dubov.player import Player
 
@@ -7,23 +7,22 @@ class E4(ColorCriterion):
     """
     Implementation of the color criterion E.4.
 
-    FIDE handbook: "5. Colour Allocation rules | 5.2 | 5.2.5"
-    Grant the colour preference of the higher ranked player (see Article 5.2.1).
+    FIDE handbook: "5. Colour Allocation rules | 5.2 | 5.2.4"
+    Alternate the colours to the most recent time in which one player had White and the other Black.
     """
 
     @classmethod
     def evaluate(cls, player_1: Player, player_2: Player) -> ColorPreferenceSide:
         """
-        Grant the color preference of the player with the higher rank. If they do not have one, this criterion is not
-        conclusive.
+        Alternate the colors relative to the most recent time when one player had the white pieces and the other the
+        black pieces. For this purpose any unplayed rounds are ignored for both players. If this never occurs the
+        criterion is not conclusive.
         """
 
-        if player_1 > player_2 and bool(player_1.color_preference.side):
-            return player_1.color_preference.side
-
-        # This method is only ever used with player_1 being the higher ranked player. Thus, the following is not
-        # necessary for test coverage.
-        if player_2 > player_1 and bool(player_2.color_preference.side):  # pragma: no cover
-            return player_2.color_preference.side.get_opposite()
+        for color_1, color_2 in zip(player_1.colors[::-1], player_2.colors[::-1], strict=False):
+            if color_1 != color_2:
+                if color_1:
+                    return ColorPreferenceSide.BLACK
+                return ColorPreferenceSide.WHITE
 
         return ColorPreferenceSide.NONE

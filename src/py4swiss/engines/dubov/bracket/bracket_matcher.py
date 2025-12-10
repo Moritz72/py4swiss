@@ -1,4 +1,5 @@
 from py4swiss.dynamicuint import DynamicUint
+from py4swiss.engines.common import PairingError
 from py4swiss.engines.dubov.bracket.bracket import Bracket
 from py4swiss.engines.dubov.criteria import QUALITY_CRITERIA
 from py4swiss.engines.dubov.criteria.absolute import C1, C3
@@ -33,6 +34,10 @@ class BracketMatcher:
         self._set_up_computer()
         self.update_matching()
 
+        # Check whether the round pairing can be completed.
+        if not all(i != j for i, j in enumerate(self._computer.get_matching())):
+            raise PairingError("Round can not be paired.")
+
     def _get_index(self, player: Player) -> int:
         """Return the vertex index of the given player."""
         return self._index_dict[player]
@@ -65,7 +70,7 @@ class BracketMatcher:
         """
         weight = DynamicUint(1)
 
-        # Bits for ensuring comletion of the round pairing.
+        # Bit for ensuring completion of the round pairing.
         weight.shift_grow(1)
 
         # Bits for quality criteria.
@@ -73,7 +78,7 @@ class BracketMatcher:
             weight.shift_grow(criterion.get_shift(self._bracket))
 
         # Bits for transpositions.
-        weight.shift_grow(3 * self._bracket.bracket_bits)
+        weight.shift_grow(self._bracket.bracket_bits)
 
         # Margin for the matching routine.
         weight.shift_grow(2)

@@ -7,7 +7,7 @@ from py4swiss.trf import ParsedTrf
 
 class DubovEngine(PairingEngine):
     """
-    A pairing engine implementing the DUbov System according to the FIDE Handbook as of 2025, see "C.04.4.1 Dubov System
+    A pairing engine implementing the Dubov System according to the FIDE Handbook as of 2025, see "C.04.4.1 Dubov System
     (effective from 1 February 2026)".
     """
 
@@ -62,20 +62,19 @@ class DubovEngine(PairingEngine):
 
         players = get_player_infos_from_trf(trf)
         players.sort(reverse=True)
+        player_pairs = []
 
-        bye_matcher = ByeMatcher(players, forbidden_pairs)
+        if len(players) % 2 == 1:
+            # Determine the player to receive the pairing allocated bye.
+            bye_matcher = ByeMatcher(players, forbidden_pairs)
+            bye = bye_matcher.get_bye()
 
-        # Determine the player so receive the pairing allocated bye.
-        bye = bye_matcher.get_bye()
-        # If not suitable choice is found, the round can not be paired.
-        if bye is None:
-            raise PairingError("Round can not be paired.")
+            player_pairs.append((bye, bye))
+            players.remove(bye)
 
-        player_pairs = [(bye, bye)]
-        players.remove(bye)
         brackets = Brackets(players, round_number, trf.x_section.number_of_rounds)
 
-        # Determine bracket pairings and save the results until there are none left.
+        # Determine the bracket pairings and save the results until there are none left.
         while not brackets.is_finished():
             bracket_state = brackets.get_current_bracket()
             bracket_pairer = BracketPairer(bracket_state, forbidden_pairs, initial_color)

@@ -1,3 +1,4 @@
+from py4swiss.engines.common import PairingError
 from py4swiss.engines.dubov.criteria.absolute import C1, C2, C3
 from py4swiss.engines.dubov.player import Player
 from py4swiss.matching_computer import ComputerDutchValidity
@@ -78,16 +79,16 @@ class ByeMatcher:
         for i in range(len(self._players)):
             self._computer.set_edge_weight(i, self._len, self._bye_weights[i])
 
-    def get_bye(self) -> Player | None:
+    def get_bye(self) -> Player:
         """
         Choose the player to receive the pairing allocated bye or return nothing if the round pairing can not be
         completed.
         """
         self._computer.compute_matching()
 
-        # Check if the round pairing can be completed.
+        # Check whether the round pairing can be completed.
         if not all(i != j for i, j in enumerate(self._computer.get_matching())):
-            return None
+            raise PairingError("Round can not be paired.")
 
         # Incentivize giving the pairing-allocated bye to the lowest ranked player possible. See the "BracketPairer"
         # class for comparison.
