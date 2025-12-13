@@ -65,19 +65,23 @@ jobs:
             exit 1
           fi
 
-      - name: Find entrypoint script (windows)
+      - name: Create Windows entry point
         if: startsWith(matrix.os, 'windows')
-        id: entry_windows
         shell: pwsh
         run: |
-          $entry = python -c "import py4swiss.main as m; print(m.__file__)"
-          $entry = $entry.Trim()
-          if (-Not (Test-Path $entry)) {
-              Write-Host "ERROR: py4swiss.main module not found at $entry"
+          @"
+          from py4swiss.main import main
+          
+          main()
+          "@ | Out-File -Encoding utf8 temp_entry.py
+          
+          if (Test-Path temp_entry.py) {
+              Write-Host "Entry point file created successfully"
+              Get-Content temp_entry.py
+          } else {
+              Write-Host "ERROR: Failed to create entry point file"
               exit 1
           }
-          Write-Host "Found py4swiss entry at: $entry"
-          $("ENTRYPOINT=" + $entry) | Out-File -FilePath $Env:GITHUB_OUTPUT -Encoding utf8 -Append
 
       - name: Build with Nuitka (Unix)
         if: startsWith(matrix.os, 'ubuntu') || startsWith(matrix.os, 'macos')
@@ -94,14 +98,13 @@ jobs:
         if: startsWith(matrix.os, 'windows')
         shell: pwsh
         run: |
-          $entry = "${{ steps.entry_windows.outputs.ENTRYPOINT }}"
-          Write-Host "Compiling: $entry"          
           python -m nuitka `
             --onefile `
             --assume-yes-for-downloads `
             --include-package-data=py4swiss `
             --output-dir=dist `
-            "$entry"
+            --output-filename=py4swiss.exe `
+            temp_entry.py
 
       - name: Prepare single binary for artifact
         shell: bash
@@ -112,7 +115,7 @@ jobs:
           elif [[ "${{ matrix.os }}" == "macos-latest" ]]; then
             cp dist/py4swiss.bin release/py4swiss-macos
           elif [[ "${{ matrix.os }}" == "windows-latest" ]]; then
-            cp dist/main.exe release/py4swiss-windows.exe
+            cp dist/py4swiss.exe release/py4swiss-windows.exe
           fi
         if: runner.os != 'Windows'
 
@@ -121,7 +124,7 @@ jobs:
         run: |
           New-Item -ItemType Directory -Path release -Force
           if ($Env:RUNNER_OS -eq "Windows") {
-              Copy-Item dist\main.exe release\py4swiss-windows.exe
+              Copy-Item dist\py4swiss.exe release\py4swiss-windows.exe
           }
         if: runner.os == 'Windows'
 
