@@ -7,7 +7,6 @@ from py4swiss.trf import TrfParser
 
 def parse_args() -> argparse.Namespace:
     """Parse the provided arguments."""
-
     parser = argparse.ArgumentParser(
         prog="py4swiss",
         description="Produce a round pairing for the specified Swiss tournament TRF.",
@@ -48,7 +47,8 @@ def main() -> None:
         case "dutch":
             engine = DutchEngine
         case _:
-            raise ValueError(f"Invalid pairing engine '{args.engine}'")
+            error_message = f"Invalid pairing engine '{args.engine}'"
+            raise ValueError(error_message)
 
     trf = TrfParser.parse(args.trf)
     pairings = engine.generate_pairings(trf)

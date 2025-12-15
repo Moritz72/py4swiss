@@ -4,14 +4,13 @@ from py4swiss.matching_computer import ComputerDutchValidity
 
 
 class ValidityMatcher:
-    """
-    A class used to determine whether the current choice of pairings and thus moved down players
-    allows completion of the round-pairing.
-    """
+    """A class used to determine whether the current choice of pairings allows completion of the round-pairing."""
 
     def __init__(self, players: list[Player], forbidden_pairs: set[tuple[int, int]]) -> None:
         """
-        Set up a new matching computer with one vertex for each player and edges with weights between them depending on
+        Set up a new matching computer.
+
+        The included graph contains exactly one vertex for each player and edges with weights between them depending on
         whether they are allowed to be paired with each other or not.
         """
         self._players: list[Player] = players
@@ -51,10 +50,7 @@ class ValidityMatcher:
         return C1.evaluate(player_1, player_2) and C3.evaluate(player_1, player_2)
 
     def finalize_match(self, player_1: Player, player_2: Player) -> None:
-        """
-        Finalize the fact that the given players will be paired with one another by removing all other edge weights from
-        the corresponding vertices in the matching computer.
-        """
+        """Finalize the fact that the given players will be paired with one another."""
         i = self._index_dict[player_1]
         j = self._index_dict[player_2]
 
@@ -66,8 +62,10 @@ class ValidityMatcher:
 
     def is_valid_matching(self) -> bool:
         """
-        Check whether the current edge weights allow for a full pairing of all players whilst adhering to the absolute
-        criteria C.1, C.2, and C.3.
+        Check whether the current edge weights allow for a full pairing of all players.
+
+        This means that the absolute criteria C.1, C.2, and C.3 need to be adhered to whilst still pairing each player
+        to exactly one other player.
         """
         self._computer.compute_matching()
         return all(i != j for i, j in enumerate(self._computer.get_matching()))

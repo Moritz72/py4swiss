@@ -15,10 +15,11 @@ class C3(AbsoluteCriterion):
     @classmethod
     def evaluate(cls, player_1: Player, player_2: Player) -> bool:
         """
-        Check whether any of the following conditions hold for the given players:
-            - At least one of the players is a top scorer
-            - The players do not share the same colour preference side
-            - Either player does not have an absolute colour preference
+        Check whether any of the three conditions hold for the given players.
+
+        Case 1: At least one of the players is a top scorer
+        Case 2: The players do not share the same colour preference side
+        Case 3: Either player does not have an absolute colour preference
         """
         topscorer = player_1.top_scorer or player_2.top_scorer
         same_preference = player_1.color_preference.side == player_2.color_preference.side

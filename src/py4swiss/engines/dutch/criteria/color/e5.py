@@ -15,11 +15,12 @@ class E5(ColorCriterion):
     @classmethod
     def evaluate(cls, player_1: Player, player_2: Player) -> ColorPreferenceSide:
         """
-        Give the white pieces to the higher ranked player, if they have an odd pairing number. Otherwise, gives the
-        black pieces to the higher ranked player. Note that the handling of the initial color needs to be handled
-        separately.
-        """
+        Assign colors based on the pairing number of the higher ranked player.
 
+        If the higher ranked player has an odd pairing number given the white pieces to the higher ranked player.
+        Otherwise, give the black pieces to the higher ranked player. Note that the handling of the initial color needs
+        to be handled separately.
+        """
         if player_1 > player_2:
             if bool(player_1.number % 2):
                 return ColorPreferenceSide.WHITE

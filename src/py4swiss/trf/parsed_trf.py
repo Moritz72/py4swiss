@@ -20,6 +20,7 @@ class ParsedTrf(BaseModel):
         tournament_section (TournamentSection): The section containing tournament information
         team_sections (list[TeamSection]): The sections containing team information
         x_section (XSection): The section containing javafo specific information
+
     """
 
     player_sections: list[PlayerSection] = Field(default_factory=list)
@@ -31,14 +32,16 @@ class ParsedTrf(BaseModel):
         """Validate that all information is consistent with the number of rounds."""
         for player_section in self.player_sections:
             if len(player_section.results) > self.x_section.number_of_rounds:
-                raise ConsistencyError(f"Starting number '{player_section.starting_number}' has too many results")
+                error_message = f"Starting number '{player_section.starting_number}' has too many results"
+                raise ConsistencyError(error_message)
 
     def _validate_starting_numbers(self) -> None:
         """Validate that the starting numbers of the players are consistent."""
         starting_numbers = {player_section.starting_number for player_section in self.player_sections}
         for i in range(len(self.player_sections)):
             if i + 1 not in starting_numbers:
-                raise ConsistencyError(f"Starting number '{i + 1}' is missing")
+                error_message = f"Starting number '{i + 1}' is missing"
+                raise ConsistencyError(error_message)
 
     def _validate_points(self) -> None:
         """Validate that all player points are consistent with their respective results."""
@@ -56,7 +59,8 @@ class ParsedTrf(BaseModel):
                 cal = f"{calculated_integer}.{calculated_decimal}"
                 exp = f"{expected_integer}.{expected_decimal}"
 
-                raise ConsistencyError(f"Calculated points for starting number '{number}' as {cal}, expected {exp}")
+                error_message = f"Calculated points for starting number '{number}' as {cal}, expected {exp}"
+                raise ConsistencyError(error_message)
 
     def _validate_results(self) -> None:
         """Validate that all player results are consistent with one another."""
@@ -71,13 +75,16 @@ class ParsedTrf(BaseModel):
 
                 opponent_round_results = results_dict[opponent_number]
                 if len(opponent_round_results) <= i:
-                    raise ConsistencyError(f"Missing entry {suffix}")
+                    error_message = f"Missing entry {suffix}"
+                    raise ConsistencyError(error_message)
 
                 opponent_round_result = opponent_round_results[i]
                 if not round_result.result.is_compatible_with(opponent_round_result.result):
-                    raise ConsistencyError(f"Incompatible result entries {suffix}")
+                    error_message = f"Incompatible result entries {suffix}"
+                    raise ConsistencyError(error_message)
                 if round_result.color == opponent_round_result.color:
-                    raise ConsistencyError(f"Incompatible color entries {suffix}")
+                    error_message = f"Incompatible color entries {suffix}"
+                    raise ConsistencyError(error_message)
 
     def validate_contents(self) -> None:
         """Validate all information contained in the TRF."""

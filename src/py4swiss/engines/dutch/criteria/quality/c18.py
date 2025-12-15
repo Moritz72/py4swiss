@@ -17,8 +17,9 @@ class C18(QualityCriterion):
     @classmethod
     def get_shift(cls, bracket: Bracket) -> int:
         """
-        Return the number of bits needed to represent all occurrences of all score differences between MDPs and
-        residents in the given bracket.
+        Return the number of bits needed to represent score differences.
+
+        This refers to all occurrences of all score differences between MDPs and residents in the given bracket.
         """
         if not bracket.two_rounds_played:
             return 0
@@ -28,9 +29,10 @@ class C18(QualityCriterion):
     @classmethod
     def get_weight(cls, player_1: Player, player_2: Player, zero: DynamicUint, bracket: Bracket) -> DynamicUint:
         """
-        Return a weight based on the score difference of the given players as well as the difference of their scores to
-        the minimum score in the given bracket and their downfloats two rounds before. However, if one of the given
-        players is neither an MDP nor a resident, then a weight of 0 will be returned.
+        Return a weight based on the score difference of the given players and their downfloats two rounds before.
+
+        Additionally, the difference of their scores to the minimum score in the given bracket and their  However, if
+        one of the given players is neither an MDP nor a resident, then a weight of 0 will be returned.
         """
         weight = DynamicUint(zero)
 

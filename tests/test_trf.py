@@ -249,7 +249,7 @@ def test_trf_parser_consistency_error() -> None:
             TrfParser.parse(trf_file)
 
 
-def test_trf_line_parsing_error(tmp_path: Path) -> None:
+def test_trf_line_parsing_error() -> None:
     """Test whether a TRF line throws parsing errors for wrongly formatted lines."""
     with pytest.raises(ParsingError):
         TrfLine(0, "")

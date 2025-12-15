@@ -11,6 +11,7 @@ class Pairing(BaseModel):
     Attributes:
         white (int): The ID of the player with the white pieces (0 in case of the pairing-allocated bye)
         black (int): The ID of the player with the black pieces (0 in case of the pairing-allocated bye)
+
     """
 
     white: int
@@ -35,12 +36,14 @@ class Pairing(BaseModel):
 
         # Pairs need to consist of exactly two items separated by whitespace.
         if not all(len(pair) == 1 + 1 for pair in pair_list):
-            raise ValueError("Invalid pair")
+            error_message = "Invalid pair"
+            raise ValueError(error_message)
 
         # A pair must consist of two distinct IDs.
         for pair in pair_list:
             if pair[0] == pair[1]:
-                raise ValueError("Invalid pair")
+                error_message = "Invalid pair"
+                raise ValueError(error_message)
 
         return [cls(white=pair[0], black=pair[1]) for pair in pair_list]
 

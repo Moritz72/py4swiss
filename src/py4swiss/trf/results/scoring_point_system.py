@@ -30,6 +30,7 @@ class ScoringPointSystem(BaseModel):
 
     Attributes:
         score_dict (ScoreDict): The number of points times ten awarded for pairs of result and color token
+
     """
 
     score_dict: ScoreDict = {

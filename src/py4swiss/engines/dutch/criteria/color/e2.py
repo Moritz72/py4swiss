@@ -18,9 +18,11 @@ class E2(ColorCriterion):
     @classmethod
     def evaluate(cls, player_1: Player, player_2: Player) -> ColorPreferenceSide:
         """
-        Grant the stronger color preference, if there is a difference in strength between the given players. Otherwise,
-        if the color preference strength is absolute, grant the one with the bigger difference between games with the
-        white and black pieces, if they are not the same. If none of the above applies, the criterion is not conclusive.
+        Grant the stronger color preference.
+
+        If there is a difference in strength between the given players grant the stonger one. Otherwise, if the color
+        preference strength is absolute, grant the one with the bigger difference between games with the white and black
+        pieces, if they are not the same. If none of the above applies, the criterion is not conclusive.
         """
         is_same_strength = player_1.color_preference.strength == player_2.color_preference.strength
         is_same_difference = abs(player_1.color_difference) == abs(player_2.color_difference)

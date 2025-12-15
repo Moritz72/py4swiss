@@ -25,6 +25,7 @@ class XSectionConfiguration(BaseModel):
     Attributes:
         first_round_color (bool): Whether the initial piece color of the top seed is white (default: True)
         by_rank (bool): Whether to pair by starting number or position (rank) in the TRF (default: False)
+
     """
 
     first_round_color: bool = True
@@ -41,7 +42,8 @@ class XSectionConfiguration(BaseModel):
                 case "black1":
                     self.first_round_color = False
                 case _:
-                    raise ValueError(f"Invalid configuration '{part}'")
+                    error_message = f"Invalid configuration '{part}'"
+                    raise ValueError(error_message)
 
     def to_string(self) -> str:
         """Return a TRF conform string representation of the given configuration."""
@@ -70,6 +72,7 @@ class XSection(AbstractSection):
         configuration (XSectionConfiguration): The configuration of the tournament
         accelerations (dict[int, list[int]]): The acceleration points for all player and rounds of the tournament
         forbidden_pairs (set[tuple[int, int]]): The pairs of players that are not allowed to be paired with each other
+
     """
 
     number_of_rounds: int
@@ -85,16 +88,19 @@ class XSection(AbstractSection):
         try:
             code_string, points_string = string.split("=", 1)
         except ValueError as e:
-            raise LineError(f"Invalid score points '{string}'", column=index + 1) from e
+            error_message = f"Invalid score points '{string}'"
+            raise LineError(error_message, column=index + 1) from e
 
         try:
             code = ScoringPointSystemCode(code_string)
         except ValueError as e:
-            raise LineError(f"Invalid score point system code '{code_string}'", column=index + 1) from e
+            error_message = f"Invalid score point system code '{code_string}'"
+            raise LineError(error_message, column=index + 1) from e
 
         points_times_ten = XSection._deserialize_decimal(points_string, index=index + len(code_string) + 1)
         if points_times_ten is None:
-            raise LineError(f"Invalid score points '{points_string}'", column=index + len(code_string) + 1)
+            error_message = f"Invalid score points '{points_string}'"
+            raise LineError(error_message, column=index + len(code_string) + 1)
 
         return code, points_times_ten
 
@@ -118,14 +124,16 @@ class XSection(AbstractSection):
     def _deserialize_player_accelerations(string: str, index: int = 0) -> tuple[int, list[int]]:
         """Convert the givne string to a starting number and list of accelerations."""
         if len(string) < PLAYER_ID_LENGTH:
-            raise LineError(f"No player id provided '{string}'", column=index + 1)
+            error_message = f"No player id provided '{string}'"
+            raise LineError(error_message, column=index + 1)
 
         id_string = string[:PLAYER_ID_LENGTH]
         accelerations_string = string[PLAYER_ID_LENGTH + 1 :]
 
         player_id = XSection._deserialize_integer(id_string, index)
         if player_id is None:
-            raise LineError(f"No player id provided '{string}'", column=index + 1)
+            error_message = f"No player id provided '{string}'"
+            raise LineError(error_message, column=index + 1)
 
         return player_id, XSection._deserialize_decimals(accelerations_string, index + PLAYER_ID_LENGTH + 1)
 
@@ -153,9 +161,11 @@ class XSection(AbstractSection):
 
         round_lines = code_line_dict[XCode.ROUNDS]
         if len(round_lines) == 0:
-            raise ParsingError("No number of rounds provided")
+            error_message = "No number of rounds provided"
+            raise ParsingError(error_message)
         if len(round_lines) > 1:
-            raise ParsingError(f"Code '{XCode.ROUNDS}' is declared twice", row=round_lines[1].row)
+            error_message = f"Code '{XCode.ROUNDS}' is declared twice"
+            raise ParsingError(error_message, row=round_lines[1].row)
 
         round_line = round_lines[0]
         try:
@@ -163,11 +173,13 @@ class XSection(AbstractSection):
         except LineError as e:
             raise ParsingError(e.message, row=round_line.row, column=e.column) from e
         if number_of_rounds is None:
-            raise ParsingError("Invalid number of rounds")
+            error_message = "Invalid number of rounds"
+            raise ParsingError(error_message)
 
         configuration_lines = code_line_dict[XCode.CONFIGURATIONS]
         if len(configuration_lines) > 1:
-            raise ParsingError(f"Code '{XCode.CONFIGURATIONS}' is declared twice", row=configuration_lines[1].row)
+            error_message = f"Code '{XCode.CONFIGURATIONS}' is declared twice"
+            raise ParsingError(error_message, row=configuration_lines[1].row)
 
         configuration = XSectionConfiguration()
         if len(configuration_lines) > 0:
@@ -200,7 +212,8 @@ class XSection(AbstractSection):
                     accelerations_line.content, CODE_LENGTH + 1
                 )
                 if player_id in accelerations:
-                    raise LineError(f"Acceleration for the player with id '{player_id}' is declared twice")
+                    error_message = f"Acceleration for the player with id '{player_id}' is declared twice"
+                    raise LineError(error_message)
                 accelerations[player_id] = player_accelerations
             except LineError as e:
                 raise ParsingError(e.message, row=accelerations_line.row, column=e.column) from e
@@ -210,7 +223,8 @@ class XSection(AbstractSection):
             try:
                 ids = tuple(cls._deserialize_integers(forbidden_pairs_line.content, CODE_LENGTH + 1))
                 if len(ids) != 1 + 1:
-                    raise LineError(f"Invalid forbidden pair '{forbidden_pairs_line.content}'", column=CODE_LENGTH + 1)
+                    error_message = f"Invalid forbidden pair '{forbidden_pairs_line.content}'"
+                    raise LineError(error_message, column=CODE_LENGTH + 1)
                 forbidden_pairs.add((ids[0], ids[1]))
             except LineError as e:
                 raise ParsingError(e.message, row=forbidden_pairs_line.row, column=e.column) from e

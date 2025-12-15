@@ -72,6 +72,7 @@ fixable = ["ALL"]
 unfixable = []
 select = [
   "E",    # pycodestyle (errors)
+  "W",    # pycodestyle warnings (e.g., whitespace)
   "F",    # pyflakes
   "I",    # isort
   "B",    # flake8-bugbear
@@ -82,8 +83,20 @@ select = [
   "TCH",  # flake8-type-checking
   "TID",  # tidy imports
   "PL",   # pylint-like rules
+  "D",    # pydocstyle (docstring conventions)
+  "Q",    # flake8-quotes (consistent quotes)
+  "SIM",  # flake8-simplify (simpler conditionals)
+  "RET",  # flake8-return (consistent, explicit returns)
+  "PERF", # perflint (obvious performance footguns)
+  "RUF",  # Ruff-native rules (modern Python best practices)
+  "ANN",  # type annotation enforcement
+  "EM",  # exception message style
 ]
 ignore = [
+  "D100",  # module docstring
+  "D104",  # package docstring
+  "D203",  # blank line before class
+  "D212",  # multi line summary first line
   "E501",  # line length
 ]
 

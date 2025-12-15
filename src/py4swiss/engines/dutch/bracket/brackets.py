@@ -82,7 +82,7 @@ class Brackets:
         # collapsing score constitute the special "collapsed" scoregroup mentioned in A.3.
         collapsed_last_bracket = [player for bracket in self._brackets[self._index + 1 :] for player in bracket]
 
-        self._brackets = self._brackets[: self._index + 1] + [collapsed_last_bracket]
+        self._brackets = [*self._brackets[: self._index + 1], collapsed_last_bracket]
         self._collapsed = True
 
         self._assign_roles()

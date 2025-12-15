@@ -26,6 +26,7 @@ class TeamSection(AbstractSection):
         code (TeamCode): The team code of the section (any of xx2)
         team_name (str): The name of the team
         players (list[int]): The list of starting numbers of all players in the team
+
     """
 
     code: TeamCode
@@ -38,7 +39,8 @@ class TeamSection(AbstractSection):
         try:
             return int(string)
         except ValueError as e:
-            raise LineError(f"Invalid starting number '{string}'", column=index + 1) from e
+            error_message = f"Invalid starting number '{string}'"
+            raise LineError(error_message, column=index + 1) from e
 
     @staticmethod
     def _serialize_players(players: list[int]) -> str:
@@ -59,16 +61,19 @@ class TeamSection(AbstractSection):
     def from_string(cls, line: str) -> Self:
         """Convert the given string to a team section."""
         if len(line) < Index.PLAYERS:
-            raise LineError("Incomplete team section")
+            error_message = "Incomplete team section"
+            raise LineError(error_message)
 
         code = cls._deserialize_enum(line[Index.CODE : Index.TEAM_NAME - 1], TeamCode, Index.CODE)
         team_name = cls._deserialize_string(line[Index.TEAM_NAME : Index.PLAYERS - 1])
         players = cls._deserialize_players(line[Index.PLAYERS :], Index.PLAYERS)
 
         if code is None:
-            raise LineError("No code provided", column=Index.CODE + 1)
+            error_message = "No code provided"
+            raise LineError(error_message, column=Index.CODE + 1)
         if team_name is None:
-            raise LineError("No name provided", column=Index.TEAM_NAME + 1)
+            error_message = "No name provided"
+            raise LineError(error_message, column=Index.TEAM_NAME + 1)
 
         return cls(code=code, team_name=team_name, players=players)
 

@@ -30,7 +30,7 @@ def test_simple(tmp_path: Path) -> None:
     x_section = XSection(number_of_rounds=5, configuration=configuration)
     comparer("small_1", 7, x_section, 3245)
     comparer("small_2", 8, x_section, 4234)
-    comparer("small_2", 9, x_section, 2948)
+    comparer("small_3", 9, x_section, 2948)
 
     x_section = XSection(number_of_rounds=7, configuration=configuration)
     comparer("medium_1", 33, x_section, 2346)
