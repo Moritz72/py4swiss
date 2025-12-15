@@ -19,7 +19,8 @@ class TrfLine:
     def __init__(self, index: int, string: str) -> None:
         """Initialize a new line."""
         if len(string) < CODE_LENGTH:
-            raise ParsingError("Incomplete line", row=index + 1)
+            error_message = "Incomplete line"
+            raise ParsingError(error_message, row=index + 1)
 
         self.row: int = index + 1
         self.code: str = string[:CODE_LENGTH]
@@ -33,11 +34,12 @@ class TrfLine:
         """Return the code type to which the given line belongs to."""
         if self.code in PLAYER_CODES:
             return PlayerCode
-        elif self.code in TOURNAMENT_CODES:
+        if self.code in TOURNAMENT_CODES:
             return TournamentCode
-        elif self.code in TEAM_CODES:
+        if self.code in TEAM_CODES:
             return TeamCode
-        elif self.code in X_CODES:
+        if self.code in X_CODES:
             return XCode
-        else:
-            raise ParsingError(f"Invalid code '{self.code}'", row=self.row, column=1)
+
+        error_message = f"Invalid code '{self.code}'"
+        raise ParsingError(error_message, row=self.row, column=1)

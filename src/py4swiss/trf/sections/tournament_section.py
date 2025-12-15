@@ -26,6 +26,7 @@ class TournamentSection(AbstractSection):
         deputy_chief_arbiter (str | None): The deputy chief arbiter of the tournament if present
         alloted_time_per_moves_game (str | None): The alloted time per move or game in the tournament if specified
         dates_of_the_round (list[Date] | None): The dates for the individual rounds of the tournament if specified
+
     """
 
     tournament_name: str | None = None
@@ -61,7 +62,8 @@ class TournamentSection(AbstractSection):
         """Convert the given string to a list of dates."""
         start_index = DATES_START_INDEX - index
         if len(string) < start_index:
-            raise LineError("Incomplete dates of rounds")
+            error_message = "Incomplete dates of rounds"
+            raise LineError(error_message)
         string = string[start_index:].rstrip()
 
         step_size = Date.LENGTH_SHORT + 1
@@ -78,7 +80,8 @@ class TournamentSection(AbstractSection):
             code = TournamentCode(line.code)
 
             if code in code_line_dict:
-                raise ParsingError(f"Code '{code}' is declared twice", row=line.row)
+                error_message = f"Code '{code}' is declared twice"
+                raise ParsingError(error_message, row=line.row)
 
             code_line_dict[code] = line
 

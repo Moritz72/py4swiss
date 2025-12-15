@@ -22,6 +22,7 @@ class Bracket(BaseModel):
         low_bracket_bits (int): The number of bits to represent all players in the lower bracket
         score_difference_total_bits (int): The number of bits to represent all score differences
         score_difference_bit_dict (dict[int, int]): The number of bits for each difference
+
     """
 
     mdp_list: list[Player]
@@ -40,9 +41,11 @@ class Bracket(BaseModel):
     @staticmethod
     def _get_score_difference_bits(mdp_list: list[Player], resident_list: list[Player]) -> tuple[int, dict[int, int]]:
         """
-        Return the number of bits necessary to represent all occurrences of all score differences as well as a
-        dictionary containing the number of bits necessary to represent all occurrences of the given score difference
-        for the given MDPs and residents.
+        Return the number of bits necessary to represent score differences as well as a dictionary.
+
+        This refers to all occurrences of all score differences between the given MDPs and residents. The returned
+        dictionary contains the number of bits necessary to represent all occurrences of the given score difference for
+        the given MDPs and residents.
         """
         # Count potential downfloats
 

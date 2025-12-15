@@ -47,6 +47,7 @@ class Player(BaseModel):
         bye_received (bool): Whether the player already had a bye or forfeit win
         top_scorer (bool): Whether the player is a topscorer
         role: (PlayerRole): The role of the player in the current bracket (bracket context only)
+
     """
 
     id: int
@@ -115,13 +116,13 @@ def _get_color_preference(section: PlayerSection) -> tuple[ColorPreference, int,
     # black by this player.
     # The colour preference is the colour that a player should ideally receive for the next game.
     # It can be determined for each player who has played at least one game.
-    # a. An absolute colour preference occurs when a player’s colour difference is greater than +1 or less than -1, or
+    # a. An absolute colour preference occurs when a player's colour difference is greater than +1 or less than -1, or
     #    when a player had the same colour in the two latest rounds he played. The preference is white when the colour
     #    difference is less than -1 or when the last two games were played with black. The preference is black when the
     #    colour difference is greater than +1, or when the last two games were played with white.
-    # b. A strong colour preference occurs when a player‘s colour difference is +1 (preference for black) or -1
+    # b. A strong colour preference occurs when a player's colour difference is +1 (preference for black) or -1
     #    (preference for white).
-    # c. A mild colour preference occurs when a player’s colour difference is zero, the preference being to alternate
+    # c. A mild colour preference occurs when a player's colour difference is zero, the preference being to alternate
     #    the colour with respect to the previous game he played.
     # d. Players who did not play any games have no colour preference (the preference of their opponents is granted).
 

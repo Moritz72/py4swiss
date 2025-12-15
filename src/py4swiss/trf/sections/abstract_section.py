@@ -17,6 +17,7 @@ class Date(BaseModel):
         year (int): The year of the date
         month (int): The month of the date
         day (int): The day of the date
+
     """
 
     YEAR_LENGTH: ClassVar[int] = 4
@@ -109,7 +110,8 @@ class AbstractSection(BaseModel, ABC):
         try:
             return int(string.lstrip())
         except ValueError as e:
-            raise LineError(f"Invalid integer '{string}'", column=index + 1) from e
+            error_message = f"Invalid integer '{string}'"
+            raise LineError(error_message, column=index + 1) from e
 
     @staticmethod
     def _deserialize_integers(string: str, index: int = 0) -> list[int]:
@@ -141,7 +143,8 @@ class AbstractSection(BaseModel, ABC):
             decimal_part = int(string[dot_index + 1 :])
             return cast("int", integer_part * pow(10, decimal_places) + decimal_part)
         except ValueError as e:
-            raise LineError(f"Invalid decimal '{string}'", column=index + 1) from e
+            error_message = f"Invalid decimal '{string}'"
+            raise LineError(error_message, column=index + 1) from e
 
     @staticmethod
     def _deserialize_decimals(string: str, index: int = 0, decimal_places: int = 1) -> list[int]:
@@ -180,7 +183,8 @@ class AbstractSection(BaseModel, ABC):
 
             return Date(year=year, month=month, day=day)
         except ValueError as e:
-            raise LineError(f"Invalid date '{string}'", column=index + 1) from e
+            error_message = f"Invalid date '{string}'"
+            raise LineError(error_message, column=index + 1) from e
 
     @staticmethod
     def _deserialize_enum(string: str, enum_cls: type[T], index: int = 0) -> T | None:
@@ -191,4 +195,5 @@ class AbstractSection(BaseModel, ABC):
         try:
             return enum_cls(string.strip())
         except ValueError as e:
-            raise LineError(f"Invalid {enum_cls.__name__} '{string}'", column=index + 1) from e
+            error_message = f"Invalid {enum_cls.__name__} '{string}'"
+            raise LineError(error_message, column=index + 1) from e

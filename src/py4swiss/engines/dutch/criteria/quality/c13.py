@@ -24,9 +24,11 @@ class C13(QualityCriterion):
     @classmethod
     def get_weight(cls, player_1: Player, player_2: Player, zero: DynamicUint, bracket: Bracket) -> DynamicUint:
         """
-        Return a weight of 1, if neither player both received an upfloat in the previous round and will also receive one
-        this round, assuming the players are paired with each other, else 0. However, if one of the given players is
-        neither an MDP nor a resident, then a weight of 0 will be returned.
+        Return a weight of either 0 or 1 based on the given players.
+
+        If neither player both received an upfloat in the previous round and will also receive one this round, assuming
+        the players are paired with each other, return 1, else 0. However, if one of the given players is neither an MDP
+        nor a resident, then a weight of 0 will be returned.
         """
         weight = DynamicUint(zero)
 

@@ -8,7 +8,7 @@ from py4swiss.main import main
 
 
 class PairingEngineClient(ABC):
-    """Abstract client for generating pairing from a TRF."""
+    """Abstract client for generating pairings from a TRF."""
 
     @classmethod
     @abstractmethod
@@ -18,6 +18,8 @@ class PairingEngineClient(ABC):
 
 
 class BbpPairingsDutchClient(PairingEngineClient):
+    """Client for generating pairings using the Dutch system implementation of bbpPairings."""
+
     @classmethod
     def generate_pairings(cls, input_file_path: Path, output_file_path: Path) -> list[Pairing]:
         """Generate the pairing of the next round for the given TRF using bbpPairings (Dutch system)."""
@@ -27,6 +29,8 @@ class BbpPairingsDutchClient(PairingEngineClient):
 
 
 class Py4SwissDutchClient(PairingEngineClient):
+    """Client for generating pairings using the Dutch system implementation of py4swiss."""
+
     @classmethod
     def generate_pairings(cls, input_file_path: Path, output_file_path: Path) -> list[Pairing]:
         """Generate the pairing of the next round for the given TRF using py4swiss (Dutch system)."""

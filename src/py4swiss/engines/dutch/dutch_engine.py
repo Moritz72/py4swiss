@@ -7,8 +7,9 @@ from py4swiss.trf import ParsedTrf
 
 class DutchEngine(PairingEngine):
     """
-    A pairing engine implementing the Dutch System according to the FIDE Handbook as of 2025, see "C.04.3 FIDE (Dutch)
-    System (effective till 31 January 2026)".
+    A pairing engine implementing the Dutch System according to the FIDE Handbook as of 2025.
+
+    See "C.04.3 FIDE (Dutch) System (effective till 31 January 2026)" for reference.
     """
 
     @staticmethod
@@ -76,7 +77,8 @@ class DutchEngine(PairingEngine):
 
         # Check whether pairing the next round is possible.
         if not validity_matcher.is_valid_matching():
-            raise PairingError("Round can not be paired.")
+            error_message = "Round can not be paired"
+            raise PairingError(error_message)
 
         # Determine bracket pairings and save the results until there are none left.
         while not brackets.is_finished():
@@ -92,6 +94,4 @@ class DutchEngine(PairingEngine):
 
         # Determine the round pairing from the bracket pairings with the correct order.
         player_pairs.sort(key=lambda player_pair: cls._get_player_pair_score(player_pair), reverse=True)
-        pairings = [cls._get_pairing(player_pair) for player_pair in player_pairs]
-
-        return pairings
+        return [cls._get_pairing(player_pair) for player_pair in player_pairs]

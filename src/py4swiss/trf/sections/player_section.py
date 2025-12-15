@@ -63,6 +63,7 @@ class PlayerSection(AbstractSection):
         points_times_ten (int): The current point total of the player in the tournament (not including acceleration)
         rank (int): The current rank of the player in the tournament
         results (list[RoundResult]): The current list of results of the player in the tournament
+
     """
 
     code: PlayerCode
@@ -84,7 +85,8 @@ class PlayerSection(AbstractSection):
         try:
             return RoundResult.from_string(string)
         except ValueError as e:
-            raise LineError(f"Invalid round result '{string}'", column=index + 1) from e
+            error_message = f"Invalid round result '{string}'"
+            raise LineError(error_message, column=index + 1) from e
 
     @staticmethod
     def _serialize_results(results: list[RoundResult]) -> str:
@@ -105,7 +107,8 @@ class PlayerSection(AbstractSection):
     def from_string(cls, string: str) -> Self:
         """Convert the given string to a player section."""
         if len(string) < Index.RESULTS - 2:
-            raise LineError("Incomplete player section")
+            error_message = "Incomplete player section"
+            raise LineError(error_message)
 
         code = cls._deserialize_enum(string[Index.CODE : Index.STARTING_NUMBER - 1], PlayerCode, Index.CODE)
         starting_number = cls._deserialize_integer(string[Index.STARTING_NUMBER : Index.SEX - 1], Index.STARTING_NUMBER)
@@ -121,13 +124,17 @@ class PlayerSection(AbstractSection):
         results = cls._deserialize_results(string[Index.RESULTS :], Index.RESULTS)
 
         if code is None:
-            raise LineError("No code provided", column=Index.CODE + 1)
+            error_message = "No code provided"
+            raise LineError(error_message, column=Index.CODE + 1)
         if starting_number is None:
-            raise LineError("No starting number provided", column=Index.STARTING_NUMBER + 1)
+            error_message = "No starting number provided"
+            raise LineError(error_message, column=Index.STARTING_NUMBER + 1)
         if points_times_ten is None:
-            raise LineError("No points provided", column=Index.POINTS + 1)
+            error_message = "No points provided"
+            raise LineError(error_message, column=Index.POINTS + 1)
         if rank is None:
-            raise LineError("No rank provided", column=Index.RANK + 1)
+            error_message = "No rank provided"
+            raise LineError(error_message, column=Index.RANK + 1)
 
         return cls(
             code=code,
@@ -164,6 +171,4 @@ class PlayerSection(AbstractSection):
         string = " ".join(parts)
 
         # There is no whitespace between sex and title.
-        string = string[: Index.TITLE] + string[Index.TITLE + 1 :]
-
-        return string
+        return string[: Index.TITLE] + string[Index.TITLE + 1 :]

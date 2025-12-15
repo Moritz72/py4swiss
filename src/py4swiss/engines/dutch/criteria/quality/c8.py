@@ -22,10 +22,11 @@ class C8(QualityCriterion):
     @classmethod
     def get_weight(cls, player_1: Player, player_2: Player, zero: DynamicUint, bracket: Bracket) -> DynamicUint:
         """
-        Return a weight of 1 except for in the following cases:
-            - either player is a lower resident
-            - both the color differences of both players are greater than 1 in absolute value with
-              the same color preference side
+        Return a weight of 1 except for some special cases.
+
+        Case 1: Either player is a lower resident
+        Case 2: Both the color differences of both players are greater than 1 in absolute value with the same color
+                preference side
         """
         weight = DynamicUint(zero)
 

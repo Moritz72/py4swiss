@@ -17,8 +17,9 @@ class C7(QualityCriterion):
     @classmethod
     def get_shift(cls, bracket: Bracket) -> int:
         """
-        Return the number of bits needed to represent all lower residents plus the number of bits needed to represent
-        all occurrences of all score differences between MDPs and residents in the given bracket.
+        Return the number of bits needed to represent all lower residents and score differences.
+
+        This refers to all occurrences of all score differences between MDPs and residents in the given bracket.
         """
         # Explicitly excluded by the criterion.
         if bracket.penultimate_pairing_bracket or bracket.last_pairing_bracket:
@@ -29,8 +30,10 @@ class C7(QualityCriterion):
     @classmethod
     def get_weight(cls, player_1: Player, player_2: Player, zero: DynamicUint, bracket: Bracket) -> DynamicUint:
         """
-        Return a weight based on the score difference of the given players as well as the difference of their scores to
-        the minimum score in the given bracket as well as whether the given players are lower residents or not.
+        Return a weight based on the score difference of the given players.
+
+        Additionally, the difference of their scores to the minimum score in the given bracket is also taken into
+        account as well as whether the given players are lower residents or not.
         """
         weight = DynamicUint(zero)
 
@@ -47,11 +50,11 @@ class C7(QualityCriterion):
         # As the scores of all lower residents is the same, if the given bracket is not the PPB, and the scores of
         # potential pairs with MDPs and residents is already determined by C.6, it is sufficient to only handle double
         # floats of MDPs and residents, see C.6 for comparison.
-        if not player_1.role == PlayerRole.LOWER:
+        if player_1.role != PlayerRole.LOWER:
             difference = player_1.points_with_acceleration - bracket.min_bracket_score + 10
             weight += (zero | 1) << bracket.score_difference_bit_dict[difference]
 
-        if not player_2.role == PlayerRole.LOWER:
+        if player_2.role != PlayerRole.LOWER:
             difference = player_2.points_with_acceleration - bracket.min_bracket_score + 10
             weight += (zero | 1) << bracket.score_difference_bit_dict[difference]
 

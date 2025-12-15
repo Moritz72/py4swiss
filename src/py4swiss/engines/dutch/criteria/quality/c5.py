@@ -26,6 +26,6 @@ class C5(QualityCriterion):
 
         # Only pairings between MDPs or residents count as pairs. Thus, with this choice of weight, the maximum round
         # pairing weight sum will maximize the number of pairs.
-        weight |= int(not player_2.role == PlayerRole.LOWER)
+        weight |= int(player_2.role != PlayerRole.LOWER)
 
         return weight

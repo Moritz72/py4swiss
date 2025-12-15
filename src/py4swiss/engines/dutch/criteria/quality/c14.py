@@ -24,9 +24,11 @@ class C14(QualityCriterion):
     @classmethod
     def get_weight(cls, player_1: Player, player_2: Player, zero: DynamicUint, bracket: Bracket) -> DynamicUint:
         """
-        Return a weight of 2 - n, where n is the number of the given players who received a downfloat two rounds before
-        but will not receive one this round, assuming the players are paired with each other. However, if one of the
-        given players is neither an MDP nor a resident, then a weight of 0 will be returned.
+        Return a weight of either 0 or 2 - n.
+
+        Note that n is the number of the given players who received a downfloat two rounds before but will not receive
+        one this round, assuming the players are paired with each other. However, if one of the given players is neither
+        an MDP nor a resident, then a weight of 0 will be returned.
         """
         weight = DynamicUint(zero)
 

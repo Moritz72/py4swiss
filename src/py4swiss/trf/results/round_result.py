@@ -14,6 +14,7 @@ class RoundResult(BaseModel):
         id (int): The starting number of the player
         color (ColorToken): The color of the player for this round
         result (ResultToken): The result of the player for this round
+
     """
 
     CONTENT_LENGTH: ClassVar[int] = 8

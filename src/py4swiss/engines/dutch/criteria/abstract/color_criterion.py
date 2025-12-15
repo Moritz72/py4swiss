@@ -11,13 +11,13 @@ class ColorCriterion(ABC):
     @abstractmethod
     def evaluate(cls, player_1: Player, player_2: Player) -> ColorPreferenceSide:
         """
-        Check whether the color criterion can be applied to the given players and if so, determine which of the given
-        players should receive the white pieces.
+        Determine which of the given players should receive the white pieces.
+
+        Note, however, that the criterion might not be conclusive for the given players.
 
         The returned value should be interpreted in the following way:
             - ColorPreferenceSide.WHITE: the former player should get the white pieces
             - ColorPreferenceSide.BLACK: the latter player should get the white pieces
             - ColorPreferenceSide.NONE: the criterion is not conclusive for the given players
         """
-
         pass  # pragma: no cover
