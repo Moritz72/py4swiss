@@ -16,8 +16,6 @@ ext_modules = [
         include_dirs=[
             "cpp/include",
             "cpp/include/matching",
-            "cpp/include/swisssystems",
-            "cpp/include/tournament",
             "cpp/include/utility",
             get_include(),
         ],
@@ -33,8 +31,6 @@ ext_modules = [
         include_dirs=[
             "cpp/include",
             "cpp/include/matching",
-            "cpp/include/swisssystems",
-            "cpp/include/tournament",
             "cpp/include/utility",
             get_include(),
         ],

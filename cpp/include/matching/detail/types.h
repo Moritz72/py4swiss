@@ -5,7 +5,6 @@
 #include <iterator>
 #include <vector>
 
-#include <tournament/tournament.h>
 #include <utility/dynamicuint.h>
 #include <utility/uinttypes.h>
 
@@ -13,7 +12,7 @@ namespace matching
 {
   namespace detail
   {
-    typedef tournament::player_index vertex_index;
+    typedef utility::uinttypes::uint_least_for_value<9999> vertex_index;
 
     /**
      * A RootBlossom has label LABEL_ZERO iff it is exposed and its base has
