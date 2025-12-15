@@ -14,6 +14,7 @@ from tests.helpers.pairing_engine_clients import (
 )
 from tests.helpers.pairing_engine_comparers import (
     RandomResultsComparer,
+    RandomResultsComparerWithByes,
     RandomResultsComparerWithForfeits,
     RandomResultsComparerWithShuffle,
 )
@@ -57,19 +58,19 @@ def test_forfeits(tmp_path: Path) -> None:
     comparer("large", 85, x_section, 3244)
 
 
-# def test_byes(tmp_path: Path) -> None:
-#     """Compare to bbpPairngs for tournaments with byes."""
-#     comparer = RandomResultsComparerWithByes(Py4SwissDutchClient, BbpPairingsDutchClient, tmp_path, 0.2)
-#     configuration = XSectionConfiguration(first_round_color=True)
-#
-#     x_section = XSection(number_of_rounds=4, configuration=configuration)
-#     comparer("small", 10, x_section, 7682)
-#
-#     x_section = XSection(number_of_rounds=7, configuration=configuration)
-#     comparer("medium", 27, x_section, 4674)
-#
-#     x_section = XSection(number_of_rounds=8, configuration=configuration)
-#     comparer("large", 89, x_section, 2435)
+def test_byes(tmp_path: Path) -> None:
+    """Compare to bbpPairngs for tournaments with byes."""
+    comparer = RandomResultsComparerWithByes(Py4SwissDutchClient, BbpPairingsDutchClient, tmp_path, 0.2)
+    configuration = XSectionConfiguration(first_round_color=True)
+
+    x_section = XSection(number_of_rounds=4, configuration=configuration)
+    comparer("small", 10, x_section, 7682)
+
+    x_section = XSection(number_of_rounds=7, configuration=configuration)
+    comparer("medium", 27, x_section, 4674)
+
+    x_section = XSection(number_of_rounds=8, configuration=configuration)
+    comparer("large", 89, x_section, 2435)
 
 
 def test_configuration(tmp_path: Path) -> None:

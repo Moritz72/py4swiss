@@ -196,9 +196,10 @@ class RandomResultsComparerWithByes(RandomResultsComparer):
         byes = [self._get_random_bye() for _ in range(len(players))]
 
         for player, bye in zip(players, byes, strict=True):
-            if bye is not None:
-                round_result = RoundResult(id=0, color=ColorToken.BYE_OR_NOT_PAIRED, result=bye)
-                self._add_result(player, round_result, score_system)
+            if not bool(player.results) or bye is None:
+                continue
+            round_result = RoundResult(id=0, color=ColorToken.BYE_OR_NOT_PAIRED, result=bye)
+            self._add_result(player, round_result, score_system)
 
 
 class RandomResultsComparerWithShuffle(RandomResultsComparer):
