@@ -75,7 +75,7 @@ class BracketPairer:
     def _shift_from_g1_to_g2(self) -> None:
         """Shift players from G1 to G2."""
         # The number of exchanges is already determined by the quality criteria.
-        exchanges = sum(self._bracket_matcher.matching[player] in self._g1 for player in self._g2)
+        exchanges = sum(self._bracket_matcher.matching[player] in self._g1 for player in self._g1)
 
         # FIDE handbook: "4.3 Sorting the Shifters | 4.3.3"
         # With the list sorted as in 4.3.2, assign the sequence numbers, starting with the player in the (remaining)
@@ -83,8 +83,9 @@ class BracketPairer:
         # the list.
 
         length = len(self._g1)
-        middle = (length - 1) // 2
-        numbered_g1 = [self._g1[i] for i in sorted(range(length), key=lambda i: (abs(i - middle), i))]
+        middle = (length - 1) / 2
+        permutation = sorted(range(length), key=lambda i: (abs(i - middle), -i if i <= middle else i))
+        numbered_g1 = [self._g1[i] for i in permutation]
 
         for player in numbered_g1:
             # Stop immediately, if there are no more exchanges to be made.
@@ -115,7 +116,7 @@ class BracketPairer:
     def _shift_from_g2_to_g1(self) -> None:
         """Shift players from G2 to G1."""
         # The number of exchanges is already determined by the quality criteria.
-        exchanges = sum(self._bracket_matcher.matching[player] in self._g2 for player in self._g1)
+        exchanges = sum(self._bracket_matcher.matching[player] in self._g2 for player in self._g2)
 
         # FIDE handbook: "4.3 Sorting the Shifters | 4.3.3"
         # With the list sorted as in 4.3.2, assign the sequence numbers, starting with the player in the (remaining)
@@ -123,8 +124,9 @@ class BracketPairer:
         # the list.
 
         length = len(self._g2)
-        middle = (length - 1) // 2
-        numbered_g2 = [self._g2[i] for i in sorted(range(length), key=lambda i: (abs(i - middle), i))]
+        middle = (length - 1) / 2
+        permutation = sorted(range(length), key=lambda i: (abs(i - middle), -i if i <= middle else i))
+        numbered_g2 = [self._g2[i] for i in permutation]
 
         for player in numbered_g2:
             # Stop immediately, if there are no more exchanges to be made.
@@ -281,7 +283,7 @@ class BracketPairer:
         self._g1.sort(key=lambda p: (p.aro, p.number))
         self._g2.sort(key=lambda p: p.number)
 
-        print("Sorted G1", [p.number for p in self._g1])
+        print("Sorted G1", [(p.number, p.aro) for p in self._g1])
         print("Initial T2", [p.number for p in self._g2])
 
         # FIDE handbook: "3.2 Pairing Process for a Bracket | 3.2.5"
@@ -298,14 +300,6 @@ class BracketPairer:
             self._bracket_matcher.update_matching()
 
             match = self._bracket_matcher.matching[player]
-            if (player.number, match.number) == (22, 33):
-                for q in self._g1:
-                    index_1 = self._bracket_matcher._index_dict[q]
-                    for p in self._g2:
-                        index_2 = self._bracket_matcher._index_dict[p]
-                        value = str(self._bracket_matcher._weights[index_1][index_2])
-                        if value != "0":
-                            print(q.number, p.number, value)
 
             # Finalize the pairing of the player in G1 and the chosen player in G2 so that it does not get overwritten
             # in the future. This ensures that players in G1 with lower index take precedence.

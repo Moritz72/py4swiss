@@ -180,7 +180,7 @@ def _get_aro(sections: list[PlayerSection]) -> dict[int, int]:
     # 1.7.3 If a player has yet to play a game, their ARO is zero.
     for section in sections:
         ratings = [rating_dict[round_result.id] for round_result in section.results if round_result.result.is_played()]
-        aro_dict[section.starting_number] = round(sum(ratings) / max(len(ratings), 1))
+        aro_dict[section.starting_number] = int(sum(ratings) / max(len(ratings), 1) + .5)
 
     return aro_dict
 
