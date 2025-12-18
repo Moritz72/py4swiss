@@ -1,8 +1,12 @@
 import argparse
 from pathlib import Path
+from typing import TYPE_CHECKING
 
-from py4swiss.engines import DutchEngine
+from py4swiss.engines import DubovEngine, DutchEngine
 from py4swiss.trf import TrfParser
+
+if TYPE_CHECKING:
+    from py4swiss.engines.common import PairingEngine
 
 
 def parse_args() -> argparse.Namespace:
@@ -43,7 +47,10 @@ def main() -> None:
     """Generate pairings according to the provided specifications."""
     args = parse_args()
 
+    engine: type[PairingEngine]
     match args.engine:
+        case "dubov":
+            engine = DubovEngine
         case "dutch":
             engine = DutchEngine
         case _:

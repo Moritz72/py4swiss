@@ -37,6 +37,21 @@ jobs:
       - name: Verify bbpPairings
         run: bbpPairings.exe
 
+      - name: Download and build CPPDubovSystem
+        run: |
+          git clone https://github.com/MichaelVShapiro/CPPDubovSystem.git cppdubov-src
+          cd cppdubov-src
+          git checkout 5354bd6
+          chmod +x build.sh
+          echo "y" | ./build.sh
+          cp CPPDubovSystem ../CPPDubovSystem
+          cd ..
+          chmod +x CPPDubovSystem
+          echo "$PWD" >> $GITHUB_PATH
+
+      - name: Verify CPPDubovSystem
+        run: CPPDubovSystem
+
       - name: Lint with Ruff
         run: ruff check --output-format=github .
 

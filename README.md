@@ -68,6 +68,16 @@ rules by FIDE.
 It was tested against and produces results identical to
 [bbpPairings](https://github.com/BieremaBoyzProgramming/bbpPairings).
 
+### FIDE Dubov System
+
+Pairing engine: `dubov`
+
+This variant is implements the [(Swiss) Dubov System](https://handbook.fide.com/chapter/C040401202602) (from 2026)
+rules by FIDE.
+It was tested against and produces results identical to
+[CPPDubovSystem](https://github.com/MichaelVShapiro/CPPDubovSystem) in most cases.
+Note, however, that neither implementation is mature at this point in time.
+
 ## 🧪 Tests
 
 In order to run the tests `bbpPairings.exe` needs to be in the environment.
