@@ -34,10 +34,6 @@ class BracketPairer:
         The first player in the tuple is to receive the white pieces and the second player the black pieces in adherence
         to the color criteria.
         """
-        # Ignore unpaired players.
-        if player_1 == player_2:
-            return player_1, player_2
-
         i = 0
         player_1_color = ColorPreferenceSide.NONE
 

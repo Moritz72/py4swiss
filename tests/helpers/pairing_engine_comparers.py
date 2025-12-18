@@ -214,9 +214,6 @@ class RandomResultsComparerWithByes(RandomResultsComparer):
 
     def _add_byes(self, trf: ParsedTrf) -> None:
         """Randomly assign byes to the players."""
-        if all(not bool(player_section.results) for player_section in trf.player_sections):
-            return
-
         players = trf.player_sections
         score_system = trf.x_section.scoring_point_system
         byes = [self._get_random_bye() for _ in range(len(players))]

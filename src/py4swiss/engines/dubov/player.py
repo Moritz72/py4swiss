@@ -71,10 +71,6 @@ class Player(BaseModel):
         #    modifications depending on possible late entries or rating adjustments
         return (self.points_with_acceleration, -self.number) < (other.points_with_acceleration, -other.number)
 
-    def __le__(self, other: Player) -> bool:
-        """Check whether the latter player is ranked higher or identical to the former one."""
-        return self == other or self < other
-
     def __eq__(self, other: object) -> bool:
         """Check whether the given players have the same ID."""
         if not isinstance(other, Player):  # pragma: no cover

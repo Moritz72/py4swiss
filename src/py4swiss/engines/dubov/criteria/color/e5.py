@@ -23,5 +23,5 @@ class E5(ColorCriterion):
             return player_2.color_preference.side.get_opposite()
 
         # All players have a color preference side.
-        error_message = "Unreachable code"
-        raise AssertionError(error_message)
+        error_message = "Unreachable code"  # pragma: no cover
+        raise AssertionError(error_message)  # pragma: no cover

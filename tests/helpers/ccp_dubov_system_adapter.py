@@ -11,7 +11,7 @@ class CppDubovSystemAdapter:
     @staticmethod
     def _is_supported_code(line: str) -> bool:
         """Check whether the given line is supported (does not start with either of XXC or XXS)."""
-        return not line.startswith(XCode.CONFIGURATIONS) and not line.startswith(XCode.POINT_SYSTEM)
+        return not line.startswith(XCode.POINT_SYSTEM)
 
     @classmethod
     def get_suffixed_path(cls, path: Path) -> Path:
