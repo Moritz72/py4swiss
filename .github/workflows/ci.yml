@@ -39,7 +39,7 @@ jobs:
 
       - name: Download and build CPPDubovSystem
         run: |
-          git clone https://github.com/chessapple/CPPDubovSystem.git
+          git clone https://github.com/MichaelVShapiro/CPPDubovSystem.git
           cd CPPDubovSystem
           git checkout 5354bd6
           chmod +x build.sh

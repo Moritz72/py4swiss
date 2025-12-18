@@ -110,7 +110,6 @@ class BracketPairer:
             # If the player is now matched to a player in G1, finalize the fact that it will be matched to a player in
             # G1 by removing all edge weights with players in G2.
             if self._has_g1_match(player):
-                print(f"G1 to G2 {player.number}")
                 exchanges -= 1
                 self._bracket_matcher.remove_weights(player, self._g2)
                 self._g1.remove(player)
@@ -151,7 +150,6 @@ class BracketPairer:
             # If the player is now matched to a player in G2, finalize the fact that it will be matched to a player in
             # G2 by removing all edge weights with players in G1.
             if self._has_g2_match(player):
-                print(f"G2 to G1 {player.number}")
                 exchanges -= 1
                 self._bracket_matcher.remove_weights(player, self._g1)
                 self._g2.remove(player)
@@ -221,8 +219,6 @@ class BracketPairer:
         else:
             self._g1 = [player for player in player_list if player.color_preference.side == ColorPreferenceSide.WHITE]
         self._g2 = [player for player in player_list if player not in self._g1]
-        print("G1", [p.number for p in self._g1])
-        print("G2", [p.number for p in self._g2])
 
     def perform_g1_g2_recomposition(self) -> None:
         """Perform the recomposition of G1 and G2."""
@@ -286,9 +282,6 @@ class BracketPairer:
         self._g1.sort(key=lambda p: (p.aro, p.number))
         self._g2.sort(key=lambda p: p.number)
 
-        print("Sorted G1", [(p.number, p.aro) for p in self._g1])
-        print("Initial T2", [p.number for p in self._g2])
-
         # FIDE handbook: "3.2 Pairing Process for a Bracket | 3.2.5"
         # Choose T2, which is the first such transposition of G2 players (transpositions are sorted by Article 4.4) that
         # can yield a legal pairing, according to the following generation rule: the first player of S1 is paired with
@@ -306,7 +299,6 @@ class BracketPairer:
 
             # Finalize the pairing of the player in G1 and the chosen player in G2 so that it does not get overwritten
             # in the future. This ensures that players in G1 with lower index take precedence.
-            print("Finalize", player.number, match.number)
             self._bracket_matcher.finalize_match(player, match)
 
     def get_player_pairs(self) -> list[tuple[Player, Player]]:
