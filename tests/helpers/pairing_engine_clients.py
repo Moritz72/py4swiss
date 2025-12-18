@@ -18,7 +18,7 @@ class PairingEngineClient(ABC):
 
 
 class BbpPairingsDutchClient(PairingEngineClient):
-    """Client for generating pairings from a TRF using bbpPairings (dutch)."""
+    """Client for generating pairings using the Dutch system implementation of bbpPairings."""
 
     @classmethod
     def generate_pairings(cls, input_file_path: Path, output_file_path: Path) -> list[Pairing]:
@@ -29,7 +29,7 @@ class BbpPairingsDutchClient(PairingEngineClient):
 
 
 class Py4SwissDutchClient(PairingEngineClient):
-    """Client for generating pairings from a TRF using py4swiss with dutch engine."""
+    """Client for generating pairings using the Dutch system implementation of py4swiss."""
 
     @classmethod
     def generate_pairings(cls, input_file_path: Path, output_file_path: Path) -> list[Pairing]:
@@ -40,7 +40,7 @@ class Py4SwissDutchClient(PairingEngineClient):
 
 
 class Py4SwissDubovClient(PairingEngineClient):
-    """Client for generating pairings from a TRF using py4swiss with dubov engine."""
+    """Client for generating pairings using the Dubov system implementation of py4swiss."""
 
     @classmethod
     def generate_pairings(cls, input_file_path: Path, output_file_path: Path) -> list[Pairing]:
