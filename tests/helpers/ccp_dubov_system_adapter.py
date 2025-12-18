@@ -5,6 +5,7 @@ from py4swiss.trf.codes import XCode
 
 class CppDubovSystemAdapter:
     """A helper class to transform data for CPPDubovSystem."""
+
     SUFFIX: str = "_dubov"
 
     @staticmethod

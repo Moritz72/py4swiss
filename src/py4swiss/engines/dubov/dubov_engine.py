@@ -1,4 +1,4 @@
-from py4swiss.engines.common import Pairing, PairingEngine, PairingError
+from py4swiss.engines.common import Pairing, PairingEngine
 from py4swiss.engines.dubov.bracket import BracketPairer, Brackets
 from py4swiss.engines.dubov.bye_matcher import ByeMatcher
 from py4swiss.engines.dubov.player import Player, get_player_infos_from_trf
@@ -7,8 +7,9 @@ from py4swiss.trf import ParsedTrf
 
 class DubovEngine(PairingEngine):
     """
-    A pairing engine implementing the Dubov System according to the FIDE Handbook as of 2025, see "C.04.4.1 Dubov System
-    (effective from 1 February 2026)".
+    A pairing engine implementing the Dubov System according to the FIDE Handbook as of 2025.
+
+    See "C.04.4.1 Dubov System (effective from 1 February 2026)".
     """
 
     @staticmethod
@@ -85,6 +86,4 @@ class DubovEngine(PairingEngine):
 
         # Determine the round pairing from the bracket pairings with the correct order.
         player_pairs.sort(key=lambda player_pair: cls._get_player_pair_score(player_pair), reverse=True)
-        pairings = [cls._get_pairing(player_pair) for player_pair in player_pairs]
-
-        return pairings
+        return [cls._get_pairing(player_pair) for player_pair in player_pairs]

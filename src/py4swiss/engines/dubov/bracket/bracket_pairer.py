@@ -29,8 +29,10 @@ class BracketPairer:
     @staticmethod
     def _get_player_pair(player_1: Player, player_2: Player, initial_color: bool) -> tuple[Player, Player]:
         """
-        Return a tuple of the given players where the first player in the tuple is to receive the white pieces and the
-        second player the black pieces in adherence to the color criteria.
+        Return a tuple of the given players.
+
+        The first player in the tuple is to receive the white pieces and the second player the black pieces in adherence
+        to the color criteria.
         """
         # Ignore unpaired players.
         if player_1 == player_2:
@@ -44,8 +46,8 @@ class BracketPairer:
             player_1_color = COLOR_CRITERIA[i].evaluate(player_1, player_2)
             i += 1
 
-        # The E.5 implementation assumes that the first seed gets the white pieces in the first round.
-        if i == len(COLOR_CRITERIA) and not initial_color:
+        # The E.1 implementation assumes that the first seed gets the white pieces in the first round.
+        if i == 1 and not initial_color:
             player_1_color = player_1_color.get_opposite()
 
         match player_1_color:
@@ -54,7 +56,8 @@ class BracketPairer:
             case ColorPreferenceSide.BLACK:
                 return player_2, player_1
             case _:  # pragma: no cover
-                raise AssertionError("Unreachable code reached")
+                error_message = "Unreachable code reached"
+                raise AssertionError(error_message)
 
     def _get_match_role(self, player: Player) -> PlayerRole:
         """Return the role of the player with which the given player is currently matched."""
@@ -308,8 +311,11 @@ class BracketPairer:
 
     def get_player_pairs(self) -> list[tuple[Player, Player]]:
         """
-        Return the chosen pairings as a list of tuples where the first player in each tuple is to receive the white
-        pieces and the second player the black pieces in adherence to the color criteria.
+        Return the chosen pairings as a list of tuples.
+
+        For each item the first player in each tuple is to receive the white pieces and the second player the black
+        pieces in adherence to the color criteria. A possibly unpaired player is denoted by a tuple of that player with
+        themselves.
         """
         player_pairs = []
 

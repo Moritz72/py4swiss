@@ -17,11 +17,16 @@ from tests.helpers.pairing_engine_clients import PairingEngineClient
 
 class PairingEngineComparer(ABC):
     """Abstract callable class for comparing pairing engine clients."""
+
     ELO_LOW = 1000
     ELO_HIGH = 2800
 
     def __init__(
-        self, client_1: type[PairingEngineClient], client_2: type[PairingEngineClient], tmp_path: Path, strict: bool = True
+        self,
+        client_1: type[PairingEngineClient],
+        client_2: type[PairingEngineClient],
+        tmp_path: Path,
+        strict: bool = True,
     ) -> None:
         """Initialze a new pairing engine comparer."""
         self.client_1: type[PairingEngineClient] = client_1
@@ -64,7 +69,14 @@ class PairingEngineComparer(ABC):
         """Return a list of players sections for the given number."""
         ratings = sorted((random.randint(self.ELO_LOW, self.ELO_HIGH) for _ in range(n)), reverse=True)
         return [
-            PlayerSection(code=PlayerCode.PLAYER, starting_number=i, name=f"Player {i}", fide_rating=ratings[i - 1], points_times_ten=0, rank=i)
+            PlayerSection(
+                code=PlayerCode.PLAYER,
+                starting_number=i,
+                name=f"Player {i}",
+                fide_rating=ratings[i - 1],
+                points_times_ten=0,
+                rank=i,
+            )
             for i in range(1, n + 1)
         ]
 
@@ -146,7 +158,7 @@ class RandomResultsComparerWithForfeits(RandomResultsComparer):
         client_2: type[PairingEngineClient],
         tmp_path: Path,
         forfeit_ratio: float,
-        strict: bool = True
+        strict: bool = True,
     ) -> None:
         """Initialize a new pairing engine comparer with the given chance of a game being declared a forfeit."""
         super().__init__(client_1, client_2, tmp_path, strict)
@@ -181,7 +193,7 @@ class RandomResultsComparerWithByes(RandomResultsComparer):
         client_2: type[PairingEngineClient],
         tmp_path: Path,
         bye_ratio: float,
-        strict: bool = True
+        strict: bool = True,
     ) -> None:
         """Initialize a new pairing engine comparer with the given chance players being assigned a bye in any round."""
         super().__init__(client_1, client_2, tmp_path, strict)

@@ -23,11 +23,13 @@ class C10(QualityCriterion):
     @classmethod
     def get_weight(cls, player_1: Player, player_2: Player, zero: DynamicUint, bracket: Bracket) -> DynamicUint:
         """
-        Return a weight based on the number of times a maximum upfloater was upfloated, if the following conditions hold
-        (otherwise return 0):
-            - one of the given players is a resident and the other one is not
-            - the non-resident was not upfloated in the previous round
-            - the current round is not the last one
+        Return a weight based on the number of times a maximum upfloater was upfloated.
+
+        Note, however, that if any of the following conditions is not fullfilled, a weight of 0 is returned instead.
+
+        Condition 1: One of the given players is a resident and the other one is not
+        Condition 2: The non-resident was not upfloated in the previous round
+        Condition 3: The current round is not the last one
         """
         weight = DynamicUint(zero)
 

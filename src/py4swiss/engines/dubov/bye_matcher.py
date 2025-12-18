@@ -9,8 +9,10 @@ class ByeMatcher:
 
     def __init__(self, players: list[Player], forbidden_pairs: set[tuple[int, int]]) -> None:
         """
-        Set up a new matching computer with one vertex for each player as well as the pairing-allocated bye and weighted
-        edges between them.
+        Set up a new matching computer.
+
+        The included graph contains exactly one vertex for each player as well as one for the pairing-allocated bye and
+        edges with weights between them depending on whether they are allowed to be paired with each other or not.
         """
         self._players: list[Player] = players
         self._forbidden_pairs: set[tuple[int, int]] = forbidden_pairs
@@ -64,8 +66,9 @@ class ByeMatcher:
 
     def _set_up_computer(self) -> None:
         """
-        Configure the matching computer by setting up vertices and edge weights. Each vertex represents a player with
-        the very last one representing the pairing-allocated bye.
+        Configure the matching computer by setting up vertices and edge weights.
+
+        Each vertex represents a player with the very last one representing the pairing-allocated bye.
         """
         for _ in range(self._len + 1):
             self._computer.add_vertex()
@@ -81,14 +84,16 @@ class ByeMatcher:
 
     def get_bye(self) -> Player:
         """
-        Choose the player to receive the pairing allocated bye or return nothing if the round pairing can not be
-        completed.
+        Choose the player to receive the pairing allocated bye.
+
+        However, if the round pairing can not be completed, return None.
         """
         self._computer.compute_matching()
 
         # Check whether the round pairing can be completed.
         if not all(i != j for i, j in enumerate(self._computer.get_matching())):
-            raise PairingError("Round can not be paired.")
+            error_message = "Round can not be paired."
+            raise PairingError(error_message)
 
         # Incentivize giving the pairing-allocated bye to the lowest ranked player possible. See the "BracketPairer"
         # class for comparison.
@@ -105,4 +110,5 @@ class ByeMatcher:
 
             self._computer.set_edge_weight(i, self._len, self._bye_weights[i])
 
-        raise AssertionError("Unreachable code reached")
+        error_message = "Unreachable code reached"
+        raise AssertionError(error_message)

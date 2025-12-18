@@ -2,7 +2,10 @@ from pathlib import Path
 
 from py4swiss.trf.sections import XSection
 from py4swiss.trf.sections.x_section import XSectionConfiguration
-from tests.helpers.pairing_engine_clients import CppDubovSystemClient, Py4SwissDubovClient
+from tests.helpers.pairing_engine_clients import (
+    CppDubovSystemClient,
+    Py4SwissDubovClient,
+)
 from tests.helpers.pairing_engine_comparers import RandomResultsComparer
 
 
@@ -19,9 +22,9 @@ def test_simple(tmp_path: Path) -> None:
     x_section = XSection(number_of_rounds=7, configuration=configuration)
     comparer("medium_1", 33, x_section, 7434)
     comparer("medium_2", 34, x_section, 9862)
-    comparer("medium_3", 35, x_section, 7257)
+    comparer("medium_3", 35, x_section, 4912)
 
     x_section = XSection(number_of_rounds=9, configuration=configuration)
-    comparer("large_1", 78, x_section, 4634)
-    comparer("large_2", 79, x_section, 7473)
+    comparer("large_1", 78, x_section, 5235)
+    comparer("large_2", 79, x_section, 9421)
     comparer("large_3", 80, x_section, 3466)

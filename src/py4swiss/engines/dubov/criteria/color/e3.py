@@ -14,8 +14,10 @@ class E3(ColorCriterion):
     @classmethod
     def evaluate(cls, player_1: Player, player_2: Player) -> ColorPreferenceSide:
         """
-        Grant the stronger color preference, if there is a difference in strength between the given players. If this is
-        not the case, the criterion is not conclusive.
+        Grant the stronger color preference.
+
+        If there is a difference in strength between the given players grant the stonger one. Otherwise, the criterion
+        is not conclusive.
         """
         is_same_strength = player_1.color_preference.strength == player_2.color_preference.strength
 

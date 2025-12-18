@@ -12,7 +12,9 @@ class BracketMatcher:
 
     def __init__(self, bracket: Bracket, forbidden_pairs: set[tuple[int, int]]) -> None:
         """
-        Set up a new matching computer with one vertex for each player and edges with weights between according to the
+        Set up a new matching computer.
+
+        The included graph contains exactly one vertex for each player and edges with weights between according to the
         absolute and quality criteria.
         """
         self._bracket: Bracket = bracket
@@ -36,7 +38,8 @@ class BracketMatcher:
 
         # Check whether the round pairing can be completed.
         if not all(i != j for i, j in enumerate(self._computer.get_matching())):
-            raise PairingError("Round can not be paired.")
+            error_message = "Round can not be paired."
+            raise PairingError(error_message)
 
     def _get_index(self, player: Player) -> int:
         """Return the vertex index of the given player."""
@@ -65,8 +68,9 @@ class BracketMatcher:
 
     def _get_max_weight(self) -> DynamicUint:
         """
-        Return a weight large enough to hold all quality criteria as well as some space for transpositions and bye
-        preferences.
+        Return a weight large enough to hold all quality criteria.
+
+        Additionally, this also includes some space for transpositions.
         """
         weight = DynamicUint(1)
 
@@ -146,8 +150,9 @@ class BracketMatcher:
 
     def add_to_weights(self, player: Player, player_list: list[Player], value: int, increment: bool = False) -> None:
         """
-        Add the given value to each edge weight between the given player and any player in the given list in order. The
-        value can optionally be incremented by 1 after each addition.
+        Add the given value to each edge weight between the given player and any player in the given list in order.
+
+        The value can optionally be incremented by 1 after each addition.
         """
         for other in player_list:
             self.add_to_weight(player, other, value)

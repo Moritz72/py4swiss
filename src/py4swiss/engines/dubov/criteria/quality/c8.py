@@ -23,10 +23,11 @@ class C8(QualityCriterion):
     @classmethod
     def get_weight(cls, player_1: Player, player_2: Player, zero: DynamicUint, bracket: Bracket) -> DynamicUint:
         """
-        Return a weight of 1, if the following conditions hold (otherwise return 0):
-            - one of the given players is a resident and the other one is not
-            - the non-resident is not a maximum upfloater
-            - the current round is not the last one
+        Return a weight of 1 if all the following conditions hold (otherwise return a weight of 0).
+
+        Conditon 1: One of the given players is a resident and the other one is not
+        Conditon 2: The non-resident is not a maximum upfloater
+        Conditon 3: The current round is not the last one
         """
         weight = DynamicUint(zero)
 
@@ -38,6 +39,6 @@ class C8(QualityCriterion):
             return weight
 
         # See C.5 for comparison.
-        weight |= int(not player_2.role == PlayerRole.RESIDENT and not player_2.is_maximum_upfloater)
+        weight |= int(player_2.role != PlayerRole.RESIDENT and not player_2.is_maximum_upfloater)
 
         return weight

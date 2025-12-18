@@ -14,19 +14,17 @@ class C7(QualityCriterion):
 
     @classmethod
     def get_shift(cls, bracket: Bracket) -> int:
-        """
-        Return the number of bits needed to represent all lower residents plus the number of bits needed to represent
-        all occurrences of all score differences between MDPs and residents in the given bracket.
-        """
+        """Return the number of bits needed to represent all residents in the given bracket."""
         # See C.5.
         return bracket.bracket_bits
 
     @classmethod
     def get_weight(cls, player_1: Player, player_2: Player, zero: DynamicUint, bracket: Bracket) -> DynamicUint:
         """
-        Return a weight of 1 except for in the following cases:
-            - none of the given players are residents
-            - both players have the same color preference side
+        Return a weight of 1 except for some special cases.
+
+        Case 1: None of the given players are residents
+        Case 2: Both players have the same color preference side
         """
         weight = DynamicUint(zero)
 

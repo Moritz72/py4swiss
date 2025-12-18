@@ -44,6 +44,7 @@ class Player(BaseModel):
         colors (list[bool): A list of whether the player had the white pieces or not in their played games
         bye_received (bool): Whether the player already had a bye or forfeit win
         role: (PlayerRole): The role of the player in the current bracket (bracket context only)
+
     """
 
     id: int
@@ -143,10 +144,7 @@ def _get_color_preference(section: PlayerSection) -> ColorPreference:
 
 
 def _get_floats(section: PlayerSection, points_list_dict: dict[int, list[int]]) -> tuple[int, bool]:
-    """
-    Return the number of times the given player was upfloated as well as whether they were upfloated in the previous
-    round.
-    """
+    """Return the number of upfloats of the given player as well as whether they upfloated in the previous round."""
     upfloats = 0
     current_upfloat = False
     player_point_list = points_list_dict[section.starting_number]
@@ -180,7 +178,7 @@ def _get_aro(sections: list[PlayerSection]) -> dict[int, int]:
     # 1.7.3 If a player has yet to play a game, their ARO is zero.
     for section in sections:
         ratings = [rating_dict[round_result.id] for round_result in section.results if round_result.result.is_played()]
-        aro_dict[section.starting_number] = int(sum(ratings) / max(len(ratings), 1) + .5)
+        aro_dict[section.starting_number] = int(sum(ratings) / max(len(ratings), 1) + 0.5)
 
     return aro_dict
 

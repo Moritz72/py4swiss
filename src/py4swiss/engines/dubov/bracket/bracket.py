@@ -19,6 +19,7 @@ class Bracket(BaseModel):
         score_difference_bit_dict (dict[int, int]): The number of bits for each difference
         upfloat_total_bits (int): The number of bits to represent all numbers of upfloats
         upfloat_bit_dict (dict[int, int]): The number of bits for each number upfloats
+
     """
 
     resident_list: list[Player]
@@ -34,9 +35,11 @@ class Bracket(BaseModel):
     @staticmethod
     def _get_score_difference_bits(player_list: list[Player]) -> tuple[int, dict[int, int]]:
         """
-        Return the number of bits necessary to represent all occurrences of all score differences as well as a
-        dictionary containing the number of bits necessary to represent all occurrences of the given score difference
-        for the given players.
+        Return the number of bits necessary to represent score differences as well as a dictionary.
+
+        This refers to all occurrences of all score differences between the given players. The returned dictionary
+        contains the number of bits necessary to represent all occurrences of the given score difference for the given
+        players.
         """
         max_points = max(player.points_with_acceleration for player in player_list)
         point_differences = [max_points - player.points_with_acceleration for player in player_list]
@@ -59,9 +62,11 @@ class Bracket(BaseModel):
     @staticmethod
     def _get_upfloat_bits(player_list: list[Player]) -> tuple[int, dict[int, int]]:
         """
-        Return the number of bits necessary to represent all occurrences of the number of upfloats as well as a
-        dictionary containing the number of bits necessary to represent all occurrences of the given upfloats of the
-        maximum upfloaters among the given players.
+        Return the number of bits necessary to represent numbers of upfloats as well as a dictionary.
+
+        This refers to all occurrences of all numbers of upfloats between the given players. The returned dictionary
+        contains the number of bits necessary to represent all occurrences of the given number of upfloats for the given
+        players.
         """
         upfloats = [
             player.upfloats for player in player_list if player.role == PlayerRole.LOWER and player.is_maximum_upfloater
