@@ -1,38 +1,55 @@
+from collections.abc import Sequence
+from typing import Generic, TypeVar
+
 from py4swiss.dynamicuint import DynamicUint
-from py4swiss.engines.common import PairingError
-from py4swiss.engines.dubov.bracket.bracket import Bracket
-from py4swiss.engines.dubov.criteria import QUALITY_CRITERIA
-from py4swiss.engines.dubov.criteria.absolute import C1, C3
-from py4swiss.engines.dubov.player import Player
+from py4swiss.engines.common import ColorPreferenceSide, PairingError
+from py4swiss.engines.matching.absolute_criterion import AbsoluteCriterion
+from py4swiss.engines.matching.color_criterion import ColorCriterion
+from py4swiss.engines.matching.player_protocol import PlayerProtocol
+from py4swiss.engines.matching.quality_criterion import QualityCriterion
+from py4swiss.engines.matching.state_protocol import StateProtocol
 from py4swiss.matching_computer import ComputerDutchOptimality
 
+P = TypeVar("P", bound=PlayerProtocol)
+S = TypeVar("S", bound=StateProtocol)
 
-class BracketMatcher:
+
+class Matcher(Generic[P]):
     """A class aiding in the pairing process for a bracket."""
 
-    def __init__(self, bracket: Bracket, forbidden_pairs: set[tuple[int, int]]) -> None:
+    def __init__(
+        self,
+        players: list[P],
+        state: S,
+        absolute_criteria: Sequence[type[AbsoluteCriterion[P]]],
+        quality_criteria: Sequence[type[QualityCriterion[P, S]]],
+        color_criteria: Sequence[type[ColorCriterion[P, S]]],
+        extra_bits: int,
+    ) -> None:
         """
         Set up a new matching computer.
 
         The included graph contains exactly one vertex for each player and edges with weights between according to the
         absolute and quality criteria.
         """
-        self._bracket: Bracket = bracket
-        self._forbidden_pairs: set[tuple[int, int]] = forbidden_pairs
-
-        self._player_list: list[Player] = bracket.resident_list + bracket.lower_list
+        self._players: list[P] = players
+        self._state: S = state
+        self._absolute_criteria: Sequence[type[AbsoluteCriterion[P]]] = absolute_criteria
+        self._quality_criteria: Sequence[type[QualityCriterion[P, S]]] = quality_criteria
+        self._color_critera: Sequence[type[ColorCriterion[P, S]]] = color_criteria
+        self._extra_bits: int = extra_bits
 
         self._max_weight: DynamicUint = self._get_max_weight()
         self._zero_weight: DynamicUint = self._max_weight & 0
 
-        self._len: int = len(self._player_list)
-        self._index_dict_reverse: dict[int, Player] = dict(enumerate(self._player_list))
-        self._index_dict: dict[Player, int] = {player: i for i, player in self._index_dict_reverse.items()}
+        self._len: int = len(self._players)
+        self._index_dict_reverse: dict[int, P] = dict(enumerate(self._players))
+        self._index_dict: dict[P, int] = {player: i for i, player in self._index_dict_reverse.items()}
 
         self._computer: ComputerDutchOptimality = ComputerDutchOptimality(self._len, self._max_weight)
         self._weights: list[list[DynamicUint]] = [[self._zero_weight] * self._len for _ in range(self._len)]
 
-        self.matching: dict[Player, Player] = {}
+        self.matching: dict[P, P] = {}
         self._set_up_computer()
         self.update_matching()
 
@@ -41,11 +58,11 @@ class BracketMatcher:
             error_message = "Round can not be paired."
             raise PairingError(error_message)
 
-    def _get_index(self, player: Player) -> int:
+    def _get_index(self, player: P) -> int:
         """Return the vertex index of the given player."""
         return self._index_dict[player]
 
-    def _get_player(self, index: int) -> Player:
+    def _get_player(self, index: int) -> P:
         """Return the player for the given vertex index."""
         return self._index_dict_reverse[index]
 
@@ -78,11 +95,11 @@ class BracketMatcher:
         weight.shift_grow(1)
 
         # Bits for quality criteria.
-        for criterion in QUALITY_CRITERIA:
-            weight.shift_grow(criterion.get_shift(self._bracket))
+        for criterion in self._quality_criteria:
+            weight.shift_grow(criterion.get_shift(self._state))
 
-        # Bits for transpositions.
-        weight.shift_grow(self._bracket.bracket_bits)
+        # Extra bits
+        weight.shift_grow(self._extra_bits)
 
         # Margin for the matching routine.
         weight.shift_grow(2)
@@ -93,7 +110,7 @@ class BracketMatcher:
 
         return weight
 
-    def _get_weight(self, player_1: Player, player_2: Player) -> DynamicUint:
+    def _get_weight(self, player_1: P, player_2: P) -> DynamicUint:
         """Return a weight containing all quality criteria."""
         weight = DynamicUint(self._zero_weight)
 
@@ -108,33 +125,32 @@ class BracketMatcher:
         # overwrite any previously set bits. The shift amount is such that, even for the sum of all weights of a given
         # round pairing, the values of a quality criterion with lower importance can not overflow to parts reserved for
         # a criterion with higher importance.
-        for criterion in QUALITY_CRITERIA:
-            weight <<= criterion.get_shift(self._bracket)
-            weight += criterion.get_weight(player_1, player_2, self._zero_weight, self._bracket)
+        for criterion in self._quality_criteria:
+            weight <<= criterion.get_shift(self._state)
+            weight += criterion.get_weight(player_1, player_2, self._zero_weight, self._state)
 
-        # There needs to be free space at the bottom for adding transposition preferences later on.
-        weight <<= self._bracket.bracket_bits
+        # Extra bits
+        weight <<= self._extra_bits
 
         return weight
 
-    def _is_allowed_pair(self, player_1: Player, player_2: Player) -> bool:
+    def _is_allowed_pair(self, player_1: P, player_2: P) -> bool:
         """Check whether the given players are allowed to be paired together."""
-        # Not yet covered by test
-        if bool({(player_1.id, player_2.id), (player_2.id, player_1.id)} & self._forbidden_pairs):  # pragma: no cover
+        if bool({(player_1.id, player_2.id), (player_2.id, player_1.id)} & self._state.forbidden_pairs):
             return False
-        return C1.evaluate(player_1, player_2) and C3.evaluate(player_1, player_2)
+        return all(criterion.evaluate(player_1, player_2) for criterion in self._absolute_criteria)
 
     def _set_up_computer(self) -> None:
         """Initialize the graph with a vertex for each player as well as edges with weights between them."""
         for _ in range(self._len):
             self._computer.add_vertex()
 
-        for i, player_1 in enumerate(self._player_list):
-            for j, player_2 in enumerate(self._player_list[i + 1 :]):
+        for i, player_1 in enumerate(self._players):
+            for j, player_2 in enumerate(self._players[i + 1 :]):
                 weight = self._get_weight(player_1, player_2)
                 self._set_weight(i, i + j + 1, weight)
 
-    def add_to_weight(self, player_1: Player, player_2: Player, value: int) -> None:
+    def add_to_weight(self, player_1: P, player_2: P, value: int) -> None:
         """Add the given integer value to the edge weight between the given players."""
         i, j = self._get_index(player_1), self._get_index(player_2)
 
@@ -149,7 +165,7 @@ class BracketMatcher:
         else:
             self._set_weight(i, j, self._weights[i][j] - weight)
 
-    def add_to_weights(self, player: Player, player_list: list[Player], value: int, increment: bool = False) -> None:
+    def add_to_weights(self, player: P, player_list: list[P], value: int, increment: bool = False) -> None:
         """
         Add the given value to each edge weight between the given player and any player in the given list in order.
 
@@ -159,12 +175,12 @@ class BracketMatcher:
             self.add_to_weight(player, other, value)
             value += int(increment)
 
-    def remove_weight(self, player_1: Player, player_2: Player) -> None:
+    def remove_weight(self, player_1: P, player_2: P) -> None:
         """Remove the edge between the given players."""
         i, j = self._get_index(player_1), self._get_index(player_2)
         self._remove_weight(i, j)
 
-    def remove_weights(self, player: Player, player_list: list[Player]) -> None:
+    def remove_weights(self, player: P, player_list: list[P]) -> None:
         """Remove each edge between the given player and any player in the given list."""
         for other in player_list:
             self.remove_weight(player, other)
@@ -176,7 +192,7 @@ class BracketMatcher:
 
         self.matching = {self._get_player(i): self._get_player(j) for i, j in enumerate(matching)}
 
-    def finalize_match(self, player_1: Player, player_2: Player) -> None:
+    def finalize_match(self, player_1: P, player_2: P) -> None:
         """Finalize the fact that the given player are to be paired with one another."""
         i, j = self._get_index(player_1), self._get_index(player_2)
 
@@ -186,3 +202,27 @@ class BracketMatcher:
             self._remove_weight(i, k)
             self._remove_weight(j, k)
         self._set_weight(i, j, self._max_weight)
+
+    def get_player_pair(self, player_1: P, player_2: P) -> tuple[P, P]:
+        """
+        Return a tuple of the given players.
+
+        The first player in the tuple is to receive the white pieces and the second player the black pieces in adherence
+        to the color criteria.
+        """
+        i = 0
+        player_1_color = ColorPreferenceSide.NONE
+
+        # Evaluate the color criteria order until one is conclusive.
+        while player_1_color == ColorPreferenceSide.NONE:
+            player_1_color = self._color_critera[i].evaluate(player_1, player_2, self._state)
+            i += 1
+
+        match player_1_color:
+            case ColorPreferenceSide.WHITE:
+                return player_1, player_2
+            case ColorPreferenceSide.BLACK:
+                return player_2, player_1
+            case _:  # pragma: no cover
+                error_message = "Unreachable code reached"
+                raise AssertionError(error_message)

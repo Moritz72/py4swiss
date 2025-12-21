@@ -1,10 +1,10 @@
 from py4swiss.dynamicuint import DynamicUint
-from py4swiss.engines.dubov.bracket import Bracket
-from py4swiss.engines.dubov.criteria.abstract import QualityCriterion
 from py4swiss.engines.dubov.player import Player, PlayerRole
+from py4swiss.engines.dubov.state import State
+from py4swiss.engines.matching import QualityCriterion
 
 
-class C9(QualityCriterion):
+class C9(QualityCriterion[Player, State]):
     """
     Implementation of the quality criterion C.9.
 
@@ -13,14 +13,14 @@ class C9(QualityCriterion):
     """
 
     @classmethod
-    def get_shift(cls, bracket: Bracket) -> int:
+    def get_shift(cls, state: State) -> int:
         """Return the number of bits needed to represent all occurrences of all upfloats of maximum upfloaters."""
-        if bracket.is_last_round:
+        if state.is_last_round:
             return 0
-        return bracket.upfloat_total_bits
+        return state.upfloat_total_bits
 
     @classmethod
-    def get_weight(cls, player_1: Player, player_2: Player, zero: DynamicUint, bracket: Bracket) -> DynamicUint:
+    def get_weight(cls, player_1: Player, player_2: Player, zero: DynamicUint, state: State) -> DynamicUint:
         """
         Return a weight based on the number of times a maximum upfloater was upfloated.
 
@@ -32,7 +32,7 @@ class C9(QualityCriterion):
         """
         weight = DynamicUint(zero)
 
-        if bracket.is_last_round:
+        if state.is_last_round:
             return weight
 
         # Only pairings involving residents count as pairs.
@@ -44,6 +44,6 @@ class C9(QualityCriterion):
 
         # See C.6 for comparison
         weight |= 1
-        weight <<= bracket.upfloat_bit_dict[player_2.upfloats]
+        weight <<= state.upfloat_bit_dict[player_2.upfloats]
 
         return weight

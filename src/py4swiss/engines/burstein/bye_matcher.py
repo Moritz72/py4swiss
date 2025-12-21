@@ -1,6 +1,6 @@
+from py4swiss.engines.burstein.criteria.absolute import C1, C2, C3
+from py4swiss.engines.burstein.player import Player
 from py4swiss.engines.common import PairingError
-from py4swiss.engines.dubov.criteria.absolute import C1, C2, C3
-from py4swiss.engines.dubov.player import Player
 from py4swiss.matching_computer import ComputerDutchValidity
 
 
@@ -45,7 +45,7 @@ class ByeMatcher:
         # 3.1.2 allows a complete pairing of all the remaining players (see [C4], Article 2.2.1)
         # 3.1.3 has the lowest score
         # 3.1.4 has played the highest number of games
-        # 3.1.5 has the largest TPN (see Article 1.2)
+        # 3.1.5 occupies the lowest ranking (according to Article 1.8)
 
         bye_weights = [
             (

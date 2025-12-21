@@ -1,5 +1,5 @@
+from py4swiss.engines.burstein.player import Player
 from py4swiss.engines.common import ColorPreferenceStrength
-from py4swiss.engines.dubov.player import Player
 from py4swiss.engines.matching import AbsoluteCriterion
 
 
@@ -8,7 +8,7 @@ class C3(AbsoluteCriterion[Player]):
     Implementation of the absolute criterion C.3.
 
     FIDE handbook: "2. Pairing Criteria | 2.1 Absolute Criteria | 2.1.3 [C3]"
-    Two players with the same absolute colour preference (see Article 1.6.1) shall not meet (see the Basic Rules for
+    Two players with the same absolute colour preference (see Article 1.5.1) shall not meet (see the Basic Rules for
     Swiss, Articles 6 and 7).
     """
 
