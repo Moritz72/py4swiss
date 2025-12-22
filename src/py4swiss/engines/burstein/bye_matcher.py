@@ -1,7 +1,7 @@
 from py4swiss.dynamicuint import DynamicUint
+from py4swiss.engines.burstein.criteria.absolute import C1, C2, C3
+from py4swiss.engines.burstein.player import Player
 from py4swiss.engines.common import PairingError
-from py4swiss.engines.dubov.criteria.absolute import C1, C2, C3
-from py4swiss.engines.dubov.player import Player
 from py4swiss.matching_computer import ComputerDutchOptimality
 
 
@@ -67,7 +67,7 @@ class ByeMatcher:
         # 3.1.2 allows a complete pairing of all the remaining players (see [C4], Article 2.2.1)
         # 3.1.3 has the lowest score
         # 3.1.4 has played the highest number of games
-        # 3.1.5 has the largest TPN (see Article 1.2)
+        # 3.1.5 occupies the lowest ranking (according to Article 1.8)
 
         weight = self._max_weight & 0
         if not C2.evaluate(player, player):
@@ -83,8 +83,7 @@ class ByeMatcher:
 
     def _is_allowed_pair(self, player_1: Player, player_2: Player) -> bool:
         """Check whether the given players are allowed to be paired together."""
-        # Not yet covered by test.
-        if bool({(player_1.id, player_2.id), (player_2.id, player_1.id)} & self._forbidden_pairs):  # pragma: no cover
+        if bool({(player_1.id, player_2.id), (player_2.id, player_1.id)} & self._forbidden_pairs):
             return False
         return C1.evaluate(player_1, player_2) and C3.evaluate(player_1, player_2)
 

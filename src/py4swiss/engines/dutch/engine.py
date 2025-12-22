@@ -1,15 +1,15 @@
-from py4swiss.engines.common import Pairing, PairingEngine
-from py4swiss.engines.dubov.bracket import BracketPairer, Brackets
-from py4swiss.engines.dubov.bye_matcher import ByeMatcher
-from py4swiss.engines.dubov.player import Player, get_player_infos_from_trf
+from py4swiss.engines.common import Pairing, PairingEngine, PairingError
+from py4swiss.engines.dutch.bracket import BracketPairer, Brackets
+from py4swiss.engines.dutch.player import Player, get_player_infos_from_trf
+from py4swiss.engines.dutch.validity_matcher import ValidityMatcher
 from py4swiss.trf import ParsedTrf
 
 
-class DubovEngine(PairingEngine):
+class Engine(PairingEngine):
     """
-    A pairing engine implementing the Dubov System according to the FIDE Handbook as of 2025.
+    A pairing engine implementing the Dutch System according to the FIDE Handbook as of 2025.
 
-    See "C.04.4.1 Dubov System (effective from 1 February 2026)".
+    See "C.04.3 FIDE (Dutch) System (effective till 31 January 2026)" for reference.
     """
 
     @staticmethod
@@ -47,42 +47,50 @@ class DubovEngine(PairingEngine):
         return Pairing(white=player_1.id, black=player_2.id)
 
     @staticmethod
-    def _get_bracket_pairs(bracket_pairer: BracketPairer) -> list[tuple[Player, Player]]:
+    def _get_bracket_pairs(bracket_pairer: BracketPairer) -> list[tuple[Player, Player]] | None:
         """Return the chosen players to be paired in the bracket."""
-        bracket_pairer.determine_initial_g1_and_g2()
-        bracket_pairer.perform_g1_g2_recomposition()
-        bracket_pairer.transpose_g2()
+        bracket_pairer.determine_heterogeneous_s1()
+        bracket_pairer.determine_heterogeneous_s2()
+
+        bracket_pairer.determine_homogeneous_exchanges()
+        bracket_pairer.determine_moves_from_s1_to_s2()
+        bracket_pairer.determine_moves_from_s2_to_s1()
+        bracket_pairer.perform_homogeneous_exchanges()
+        bracket_pairer.transpose_homogeneous_s2()
+
+        if not bracket_pairer.check_completion_criterium():
+            return None
         return bracket_pairer.get_player_pairs()
 
     @classmethod
     def generate_pairings(cls, trf: ParsedTrf) -> list[Pairing]:
         """Return the round pairing of the next round for the given TRF."""
+        player_pairs = []
         round_number = min(len(section.results) for section in trf.player_sections) + 1
         initial_color = trf.x_section.configuration.first_round_color
-        forbidden_pairs = trf.x_section.forbidden_pairs
 
         players = get_player_infos_from_trf(trf)
         players.sort(reverse=True)
-        player_pairs = []
 
-        if len(players) % 2 == 1:
-            # Determine the player to receive the pairing allocated bye.
-            bye_matcher = ByeMatcher(players, forbidden_pairs)
-            bye = bye_matcher.get_bye()
+        validity_matcher = ValidityMatcher(players, trf.x_section.forbidden_pairs)
+        brackets = Brackets(players, round_number)
 
-            player_pairs.append((bye, bye))
-            players.remove(bye)
+        # Check whether pairing the next round is possible.
+        if not validity_matcher.is_valid_matching():
+            error_message = "Round can not be paired"
+            raise PairingError(error_message)
 
-        brackets = Brackets(players, round_number, trf.x_section.number_of_rounds)
-
-        # Determine the bracket pairings and save the results until there are none left.
+        # Determine bracket pairings and save the results until there are none left.
         while not brackets.is_finished():
             bracket_state = brackets.get_current_bracket()
-            bracket_pairer = BracketPairer(bracket_state, forbidden_pairs, initial_color)
+            bracket_pairer = BracketPairer(bracket_state, validity_matcher, initial_color)
             bracket_pairings = cls._get_bracket_pairs(bracket_pairer)
 
-            brackets.apply_bracket_pairings(bracket_pairings)
-            player_pairs.extend(bracket_pairings)
+            if bracket_pairings is None:
+                brackets.collapse()
+            else:
+                brackets.apply_bracket_pairings(bracket_pairings)
+                player_pairs.extend(bracket_pairings)
 
         # Determine the round pairing from the bracket pairings with the correct order.
         player_pairs.sort(key=lambda player_pair: cls._get_player_pair_score(player_pair), reverse=True)

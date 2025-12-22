@@ -67,3 +67,14 @@ class Py4SwissDubovClient(PairingEngineClient):
         sys.argv = ["py4swiss", "-e", "dubov", "-t", str(input_file_path), "-p", str(output_file_path)]
         main()
         return Pairing.from_file(output_file_path)
+
+
+class Py4SwissBursteinClient(PairingEngineClient):
+    """Client for generating pairings using the Burstein system implementation of py4swiss."""
+
+    @classmethod
+    def generate_pairings(cls, input_file_path: Path, output_file_path: Path) -> list[Pairing]:
+        """Generate the pairing of the next round for the given TRF using py4swiss (Burstein system)."""
+        sys.argv = ["py4swiss", "-e", "burstein", "-t", str(input_file_path), "-p", str(output_file_path)]
+        main()
+        return Pairing.from_file(output_file_path)

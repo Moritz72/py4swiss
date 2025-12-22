@@ -1,14 +1,14 @@
 from py4swiss.dynamicuint import DynamicUint
-from py4swiss.engines.dubov.player import Player, PlayerRole
-from py4swiss.engines.dubov.state import State
+from py4swiss.engines.burstein.player import Player, PlayerRole
+from py4swiss.engines.burstein.state import State
 from py4swiss.engines.matching import QualityCriterion
 
 
-class C7(QualityCriterion[Player, State]):
+class C8(QualityCriterion[Player, State]):
     """
-    Implementation of the quality criterion C.7.
+    Implementation of the quality criterion C.8.
 
-    FIDE handbook: "2. Pairing Criteria | 2.3 Quality Criteria | 2.3.3 [C.7]"
+    FIDE handbook: "2. Pairing Criteria | 2.3 Quality Criteria | 2.3.4 [C.8]"
     Minimise the number of players who do not get their colour preference.
     """
 
@@ -28,8 +28,8 @@ class C7(QualityCriterion[Player, State]):
         """
         weight = DynamicUint(zero)
 
-        # Only pairings involving residents count as pairs.
-        if player_1.role == PlayerRole.LOWER:
+        # Only pairings between residents count as pairs.
+        if player_1.role != PlayerRole.RESIDENT or player_2.role != PlayerRole.RESIDENT:
             return weight
 
         # There will be a player in a pair who does not get their color preference, if and only if both players in the

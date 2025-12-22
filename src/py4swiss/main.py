@@ -2,7 +2,7 @@ import argparse
 from pathlib import Path
 from typing import TYPE_CHECKING
 
-from py4swiss.engines import DubovEngine, DutchEngine
+from py4swiss.engines import BursteinEngine, DubovEngine, DutchEngine
 from py4swiss.trf import TrfParser
 
 if TYPE_CHECKING:
@@ -49,6 +49,8 @@ def main() -> None:
 
     engine: type[PairingEngine]
     match args.engine:
+        case "burstein":
+            engine = BursteinEngine
         case "dubov":
             engine = DubovEngine
         case "dutch":

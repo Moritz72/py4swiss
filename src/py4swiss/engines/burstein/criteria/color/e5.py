@@ -1,6 +1,6 @@
+from py4swiss.engines.burstein.player import Player
+from py4swiss.engines.burstein.state import State
 from py4swiss.engines.common.color_preference import ColorPreferenceSide
-from py4swiss.engines.dubov.player import Player
-from py4swiss.engines.dubov.state import State
 from py4swiss.engines.matching import ColorCriterion
 
 
@@ -9,7 +9,7 @@ class E5(ColorCriterion[Player, State]):
     Implementation of the color criterion E.5.
 
     FIDE handbook: "5. Colour Allocation rules | 5.2 | 5.2.5"
-    Grant the colour preference of the higher ranked player (see Article 5.2.1).
+    Grant the colour preference of the higher ranked player (see Article 1.8).
     """
 
     @classmethod
@@ -23,6 +23,6 @@ class E5(ColorCriterion[Player, State]):
         if player_2 > player_1 and bool(player_2.color_preference.side):  # pragma: no cover
             return player_2.color_preference.side.get_opposite()
 
-        # All players have a color preference side.
+        # The higher ranked player must have a color preference, since E1 would have been conclsuive otherwise.
         error_message = "Unreachable code"  # pragma: no cover
         raise AssertionError(error_message)  # pragma: no cover

@@ -1,6 +1,6 @@
+from py4swiss.engines.burstein.player import Player
+from py4swiss.engines.burstein.state import State
 from py4swiss.engines.common import ColorPreferenceSide
-from py4swiss.engines.dubov.player import Player
-from py4swiss.engines.dubov.state import State
 from py4swiss.engines.matching import ColorCriterion
 
 

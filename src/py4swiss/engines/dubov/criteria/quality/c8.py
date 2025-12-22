@@ -1,10 +1,10 @@
 from py4swiss.dynamicuint import DynamicUint
-from py4swiss.engines.dubov.bracket import Bracket
-from py4swiss.engines.dubov.criteria.abstract import QualityCriterion
 from py4swiss.engines.dubov.player import Player, PlayerRole
+from py4swiss.engines.dubov.state import State
+from py4swiss.engines.matching import QualityCriterion
 
 
-class C8(QualityCriterion):
+class C8(QualityCriterion[Player, State]):
     """
     Implementation of the quality criterion C.8.
 
@@ -13,15 +13,15 @@ class C8(QualityCriterion):
     """
 
     @classmethod
-    def get_shift(cls, bracket: Bracket) -> int:
-        """Return the number of bits needed to represent all residents in the given bracket."""
-        if bracket.is_last_round:
+    def get_shift(cls, state: State) -> int:
+        """Return the number of bits needed to represent all residents in the bracket."""
+        if state.is_last_round:
             return 0
         # See C.5.
-        return bracket.bracket_bits
+        return state.bracket_bits
 
     @classmethod
-    def get_weight(cls, player_1: Player, player_2: Player, zero: DynamicUint, bracket: Bracket) -> DynamicUint:
+    def get_weight(cls, player_1: Player, player_2: Player, zero: DynamicUint, state: State) -> DynamicUint:
         """
         Return a weight of 1 if all the following conditions hold (otherwise return a weight of 0).
 
@@ -31,7 +31,7 @@ class C8(QualityCriterion):
         """
         weight = DynamicUint(zero)
 
-        if bracket.is_last_round:
+        if state.is_last_round:
             return weight
 
         # Only pairings involving residents count as pairs.

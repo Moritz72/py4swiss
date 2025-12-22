@@ -1,4 +1,4 @@
-from py4swiss.engines.dubov.player import Player
+from py4swiss.engines.burstein.player import Player
 from py4swiss.engines.matching import AbsoluteCriterion
 
 

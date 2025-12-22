@@ -5,13 +5,13 @@ from pydantic import BaseModel
 from py4swiss.engines.dubov.player import Player, PlayerRole
 
 
-class Bracket(BaseModel):
+class State(BaseModel):
     """
     Represents the state of a pairing bracket.
 
     Attributes:
-        resident_list (list[Player]): The list of players in the current bracket
-        lower_list (list[Player]): The list of potential upfloaters
+        forbidden_pairs (set[tuple[int, int]]): The pairs of players that are not allowed to be paired with each other
+        initial_color (bool): Whether the initial color for the first seed is white
         is_first_round (bool): Whether it is currently the first round
         is_last_round (bool): Whether it is currently the last round
         bracket_bits (int): The number of bits to represent all residents
@@ -22,8 +22,8 @@ class Bracket(BaseModel):
 
     """
 
-    resident_list: list[Player]
-    lower_list: list[Player]
+    forbidden_pairs: set[tuple[int, int]]
+    initial_color: bool
     is_first_round: bool
     is_last_round: bool
     bracket_bits: int
@@ -33,7 +33,7 @@ class Bracket(BaseModel):
     upfloat_bit_dict: dict[int, int]
 
     @staticmethod
-    def _get_score_difference_bits(player_list: list[Player]) -> tuple[int, dict[int, int]]:
+    def _get_score_difference_bits(players: list[Player]) -> tuple[int, dict[int, int]]:
         """
         Return the number of bits necessary to represent score differences as well as a dictionary.
 
@@ -41,8 +41,8 @@ class Bracket(BaseModel):
         contains the number of bits necessary to represent all occurrences of the given score difference for the given
         players.
         """
-        max_points = max(player.points_with_acceleration for player in player_list)
-        point_differences = [max_points - player.points_with_acceleration for player in player_list]
+        max_points = max(player.points_with_acceleration for player in players)
+        point_differences = [max_points - player.points_with_acceleration for player in players]
         point_differences = [difference for difference in point_differences if difference != 0]
 
         bits = {key: point_differences.count(key).bit_length() for key in point_differences}
@@ -60,7 +60,7 @@ class Bracket(BaseModel):
         return running_total, cumulative_bits
 
     @staticmethod
-    def _get_upfloat_bits(player_list: list[Player]) -> tuple[int, dict[int, int]]:
+    def _get_upfloat_bits(players: list[Player]) -> tuple[int, dict[int, int]]:
         """
         Return the number of bits necessary to represent numbers of upfloats as well as a dictionary.
 
@@ -69,7 +69,7 @@ class Bracket(BaseModel):
         players.
         """
         upfloats = [
-            player.upfloats for player in player_list if player.role == PlayerRole.LOWER and player.is_maximum_upfloater
+            player.upfloats for player in players if player.role == PlayerRole.LOWER and player.is_maximum_upfloater
         ]
 
         bits = {key: upfloats.count(key).bit_length() for key in upfloats}
@@ -88,19 +88,21 @@ class Bracket(BaseModel):
     @classmethod
     def from_data(
         cls,
-        player_list: list[Player],
+        players: list[Player],
         round_number: int,
         number_of_rounds: int,
+        forbidden_pairs: set[tuple[int, int]],
+        initial_color: bool,
     ) -> Self:
         """Return a bracket given the minimal necessary information."""
-        score_difference_total_bits, score_difference_bit_dict = cls._get_score_difference_bits(player_list)
-        upfloat_total_bits, upfloat_bit_dict = cls._get_upfloat_bits(player_list)
+        score_difference_total_bits, score_difference_bit_dict = cls._get_score_difference_bits(players)
+        upfloat_total_bits, upfloat_bit_dict = cls._get_upfloat_bits(players)
         return cls(
-            resident_list=[player for player in player_list if player.role == PlayerRole.RESIDENT],
-            lower_list=[player for player in player_list if player.role == PlayerRole.LOWER],
+            forbidden_pairs=forbidden_pairs,
+            initial_color=initial_color,
             is_first_round=round_number == 1,
             is_last_round=round_number == number_of_rounds,
-            bracket_bits=sum(player.role == PlayerRole.RESIDENT for player in player_list).bit_length(),
+            bracket_bits=sum(player.role == PlayerRole.RESIDENT for player in players).bit_length(),
             score_difference_total_bits=score_difference_total_bits,
             score_difference_bit_dict=score_difference_bit_dict,
             upfloat_total_bits=upfloat_total_bits,
