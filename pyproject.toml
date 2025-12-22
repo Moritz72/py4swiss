@@ -1,6 +1,6 @@
 [project]
 name = "py4swiss"
-version = "0.3.0"
+version = "0.3.1"
 description = "A package to pair swiss tournaments"
 readme = "README.md"
 authors = [{ name = "Moritz Eckert", email = "MoritzEckert@web.de" }]

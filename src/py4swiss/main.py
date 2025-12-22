@@ -40,6 +40,13 @@ def parse_args() -> argparse.Namespace:
         help="path to the output file containing the round pairing (default: pairings.txt)",
     )
 
+    parser.add_argument(
+        "-s",
+        "--strict",
+        action="store_true",
+        help="enable strict parsing mode (raise errors on malformed lines in the TRF)",
+    )
+
     return parser.parse_args()
 
 
@@ -59,6 +66,6 @@ def main() -> None:
             error_message = f"Invalid pairing engine '{args.engine}'"
             raise ValueError(error_message)
 
-    trf = TrfParser.parse(args.trf)
+    trf = TrfParser.parse(args.trf, strict=args.strict)
     pairings = engine.generate_pairings(trf)
     engine.write_pairings_to_file(pairings, args.pairings)

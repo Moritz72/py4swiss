@@ -21,6 +21,9 @@ required.
 This file needs to be a **TRF(x)** as defined by the
 [javafo User Manual](https://www.rrweb.org/javafo/aum/JaVaFo2_AUM.htm).
 
+When parsing, malformed lines (with an incomplete or invalid code) will be skipped by default.
+Use `--strict` to enable stricter parsing, if desired.
+
 Note that unlike *javafo*, if no initial color is provided, *py4swiss* will default to `white1` instead of choosing
 randomly.
 
@@ -42,7 +45,8 @@ pip install .
 
 Pre-built binary files for each supported OS are also available in the
 [Releases section](https://github.com/Moritz72/py4swiss/releases).
-## ️ ⚙️ Usage
+
+## ⚙ Usage
 
 To generate pairings for a given tournament, run
 
@@ -56,6 +60,7 @@ Additional arguments can be specified for more precise control.
 |------------------|-----------------------------------------|----------------|
 | `-e, --engine`   | Pairing engine                          | `dutch`        |
 | `-p, --pairings` | Output file for pairings                | `pairings.txt` |
+| `-s, --strict`   | Enable strict parsing mode              | `False`        |
 
 ## 🧩 Variants
 
@@ -63,7 +68,7 @@ Additional arguments can be specified for more precise control.
 
 Pairing engine: `dutch`
 
-This variant is implements the [(Swiss) Dutch System](https://handbook.fide.com/chapter/C0403Till2026) (until 2026)
+This variant implements the [(Swiss) Dutch System](https://handbook.fide.com/chapter/C0403Till2026) (until 2026)
 rules by FIDE.
 It was tested against and produces results identical to
 [bbpPairings](https://github.com/BieremaBoyzProgramming/bbpPairings).
@@ -72,7 +77,7 @@ It was tested against and produces results identical to
 
 Pairing engine: `dubov`
 
-This variant is implements the [(Swiss) Dubov System](https://handbook.fide.com/chapter/C040401202602) (from 2026)
+This variant implements the [(Swiss) Dubov System](https://handbook.fide.com/chapter/C040401202602) (from 2026)
 rules by FIDE.
 It was tested against and produces results identical to
 [CPPDubovSystem](https://github.com/MichaelVShapiro/CPPDubovSystem) in most cases.
@@ -82,14 +87,13 @@ Note, however, that neither implementation is mature at this point in time.
 
 Pairing engine: `burstein`
 
-This variant is implements the [(Swiss) Burstein System](https://handbook.fide.com/chapter/C040402202602) (from 2026)
+This variant implements the [(Swiss) Burstein System](https://handbook.fide.com/chapter/C040402202602) (from 2026)
 rules by FIDE.
 Note, however, that this implementation is not mature at this point in time.
 
 ## 🧪 Tests
 
-In order to run the tests `bbpPairings.exe` as well as `CPPDubovSystem` need to be in the environment.
-
+In order to run some tests, `bbpPairings.exe` as well as `CPPDubovSystem` need to be in the environment.
 You can download `bbpPairings.exe` directly from
 [here](https://github.com/BieremaBoyzProgramming/bbpPairings/releases/tag/v5.0.1)
 while `CPPDubovSystem` needs to be built from [source](https://github.com/MichaelVShapiro/CPPDubovSystem).
