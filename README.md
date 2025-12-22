@@ -1,6 +1,6 @@
 # ♟️ py4swiss
 
-[![CI](https://github.com/Moritz72/py4swiss/actions/workflows/ci.yml/badge.svg)](https://github.com/yourusername/yourrepo/actions/workflows/ci.yml)
+[![CI](https://github.com/Moritz72/py4swiss/actions/workflows/ci.yml/badge.svg)](https://github.com/Moritz72/py4swiss/actions/workflows/ci.yml)
 [![codecov](https://codecov.io/gh/Moritz72/py4swiss/branch/main/graph/badge.svg)](https://codecov.io/gh/Moritz72/py4swiss)
 [![Python 3.11](https://img.shields.io/badge/python-3.11+-blue)](https://img.shields.io/badge/python-3.11+-blue)
 [![Ruff](https://img.shields.io/badge/linting-ruff-blue)](https://github.com/astral-sh/ruff)
@@ -78,24 +78,23 @@ It was tested against and produces results identical to
 [CPPDubovSystem](https://github.com/MichaelVShapiro/CPPDubovSystem) in most cases.
 Note, however, that neither implementation is mature at this point in time.
 
+### FIDE Burstein System
+
+Pairing engine: `burstein`
+
+This variant is implements the [(Swiss) Burstein System](https://handbook.fide.com/chapter/C040402202602) (from 2026)
+rules by FIDE.
+Note, however, this implementation is not mature at this point in time.
+
 ## 🧪 Tests
 
-In order to run the tests `bbpPairings.exe` needs to be in the environment.
+In order to run the tests `bbpPairings.exe` as well as `CPPDubovSystem` need to be in the environment.
 
-You can download the executable from [here](https://github.com/BieremaBoyzProgramming/bbpPairings/releases/tag/v5.0.1)
-and then add it to the environment via
+You can download `bbpPairings.exe` directly from
+[here](https://github.com/BieremaBoyzProgramming/bbpPairings/releases/tag/v5.0.1)
+while `CPPDubovSystem` needs to be built from [source](https://github.com/MichaelVShapiro/CPPDubovSystem).
 
-```cmd
-set PATH=%PATH%;/path/to/bbpPairings
-```
-
-for Windows or
-
-```bash
-export PATH="$PATH:/path/to/bbpPairings"
-```
-
-for Linux.
+After that you can run the tests using `pytest`.
 
 ## 📜 License
 
