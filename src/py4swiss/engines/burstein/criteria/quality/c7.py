@@ -30,13 +30,14 @@ class C7(QualityCriterion[Player, State]):
 
         # See C.5 for comparison.
         # This choice maxmimizes the number of pairs in the lower bracket in sum.
-        weight |= int(player_1.role >= PlayerRole.RESIDENT and player_2.role == PlayerRole.LOWER)
+        weight |= int(player_1.role >= PlayerRole.LOWER and player_2.role == PlayerRole.LOWER)
         weight <<= state.resident_score_total_bits
 
         # See C.6 for comparison.
         # The weight contains all 0s except for a single 1 accounting for the score of the resident involved in thus
         # pair. Thus, in sum this choice of weights will maximize the score of outgoing floaters paired in the lower
         # bracket which means the scores of outgoing floaters in the lower bracket is minimized.
-        weight += (zero | 1) << state.resident_score_bit_dict[player_1.points_with_acceleration]
+        if player_1.role == PlayerRole.RESIDENT:
+            weight += (zero | 1) << state.resident_score_bit_dict[player_1.points_with_acceleration]
 
         return weight

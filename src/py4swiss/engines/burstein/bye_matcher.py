@@ -1,7 +1,8 @@
+from py4swiss.dynamicuint import DynamicUint
 from py4swiss.engines.burstein.criteria.absolute import C1, C2, C3
 from py4swiss.engines.burstein.player import Player
 from py4swiss.engines.common import PairingError
-from py4swiss.matching_computer import ComputerDutchValidity
+from py4swiss.matching_computer import ComputerDutchOptimality
 
 
 class ByeMatcher:
@@ -17,25 +18,46 @@ class ByeMatcher:
         self._players: list[Player] = players
         self._forbidden_pairs: set[tuple[int, int]] = forbidden_pairs
 
-        bye_weights, max_weight = self._get_bye_weights()
-        self._bye_weights: list[int] = bye_weights
-        self._max_weight: int = max_weight
+        points_set = {player.points_with_acceleration for player in self._players}
+        games_set = {len(player.opponents) for player in self._players}
+        self._points_dict: dict[int, int] = {value: rank for rank, value in enumerate(sorted(points_set, reverse=True))}
+        self._games_dict: dict[int, int] = {value: rank for rank, value in enumerate(sorted(games_set, reverse=True))}
+        self._point_bits: int = len(points_set).bit_length()
+        self._game_bits: int = len(games_set).bit_length()
+
+        self._max_weight: DynamicUint = self._get_max_weight()
+        self._bye_weights: list[DynamicUint] = [self._get_bye_weight(player) for player in self._players]
 
         self._len: int = len(players)
-        self._computer: ComputerDutchValidity = ComputerDutchValidity(self._len + 1, self._max_weight)
+        self._computer: ComputerDutchOptimality = ComputerDutchOptimality(self._len + 1, self._max_weight)
         self._index_dict_reverse: dict[int, Player] = dict(enumerate(self._players))
 
         self._set_up_computer()
 
-    def _get_bye_weights(self) -> tuple[list[int], int]:
-        """Return weights to determine the best choice for the pairing-allocated bye."""
+    def _get_max_weight(self) -> DynamicUint:
+        """Return an upper bound for weights."""
         points_list = sorted({player.points_with_acceleration for player in self._players}, reverse=True)
         games_list = sorted({len(player.opponents) for player in self._players}, reverse=True)
 
-        points_upper_bound = len(points_list) + 1
-        games_upper_bound = len(games_list) + 1
+        point_bits = len(points_list).bit_length()
+        game_bits = len(games_list).bit_length()
 
-        # Choose the weights between players and the pairing-allocated bye according to the bye preferences. 3.1.5 is
+        # Get upper bound for weights.
+        max_weight = DynamicUint(1)
+        max_weight <<= 1 + point_bits + game_bits
+
+        # Margin for the matching routine.
+        max_weight.shift_grow(2)
+
+        # Set all bits to 1.
+        max_weight >>= 1
+        max_weight -= (max_weight & 0) | 1
+
+        return max_weight
+
+    def _get_bye_weight(self, player: Player) -> DynamicUint:
+        """Return a weight to determine the best choice for the pairing-allocated bye."""
+        # Choose the weight between the player and the pairing-allocated bye according to the bye preferences. 3.1.5 is
         # not yet considered here.
 
         # FIDE handbook: "3.1 Pairing-Allocated-Bye Assignment"
@@ -47,21 +69,21 @@ class ByeMatcher:
         # 3.1.4 has played the highest number of games
         # 3.1.5 occupies the lowest ranking (according to Article 1.8)
 
-        bye_weights = [
-            (
-                (points_list.index(player.points) + 1) * games_upper_bound + games_list.index(len(player.opponents)) + 1
-                if C2.evaluate(player, player)
-                else 0
-            )
-            for player in self._players
-        ]
+        weight = self._max_weight & 0
+        if not C2.evaluate(player, player):
+            return weight
 
-        return bye_weights, points_upper_bound * games_upper_bound
+        weight |= 1
+        weight <<= self._point_bits
+        weight |= self._points_dict[player.points_with_acceleration]
+        weight <<= self._game_bits
+        weight |= self._games_dict[len(player.opponents)]
+
+        return weight
 
     def _is_allowed_pair(self, player_1: Player, player_2: Player) -> bool:
         """Check whether the given players are allowed to be paired together."""
-        # Not yet covered by test
-        if bool({(player_1.id, player_2.id), (player_2.id, player_1.id)} & self._forbidden_pairs):  # pragma: no cover
+        if bool({(player_1.id, player_2.id), (player_2.id, player_1.id)} & self._forbidden_pairs):
             return False
         return C1.evaluate(player_1, player_2) and C3.evaluate(player_1, player_2)
 
@@ -99,10 +121,10 @@ class ByeMatcher:
         # Incentivize giving the pairing-allocated bye to the lowest ranked player possible. See the "Pairer" class for
         # comparison.
         for i in range(self._len - 1, -1, -1):
-            if self._bye_weights[i] == 0:
+            if not bool(self._bye_weights[i]):
                 continue
 
-            self._computer.set_edge_weight(i, self._len, self._bye_weights[i] + 1)
+            self._computer.set_edge_weight(i, self._len, self._bye_weights[i] + DynamicUint(1))
             self._computer.compute_matching()
             matching = self._computer.get_matching()
 

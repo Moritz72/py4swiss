@@ -123,15 +123,25 @@ def _get_color_preference(section: PlayerSection) -> ColorPreference:
         return ColorPreference(side=side, strength=ColorPreferenceStrength.STRONG)
     if side != ColorPreferenceSide.NONE:
         return ColorPreference(side=side, strength=ColorPreferenceStrength.MILD)
-    return ColorPreference(side=ColorPreferenceSide.BLACK, strength=ColorPreferenceStrength.MILD)
+    return ColorPreference(side=ColorPreferenceSide.NONE, strength=ColorPreferenceStrength.NONE)
 
 
-def _get_buchholz_dict(sections: list[PlayerSection]) -> dict[int, int]:
+def _get_buchholz_dict(sections: list[PlayerSection], score_point_system: ScoringPointSystem) -> dict[int, int]:
     """Return a map from starting number to the Buchholz of all players."""
     points_dict = {section.starting_number: section.points_times_ten for section in sections}
     buchholz_dict = {}
 
-    # FIDE handbook: "1.7 Opposition Evaluation | 1.7.1  Sorting Methods | 1. Buchholz"
+    # FIDE handbook: "1.7 Opposition Evaluation | 1.7.2 Common Rules | 3."
+    # Exception: if a player has a series of consecutive zero-point-byes up to the current round, each of the ones
+    # gathered in previous rounds, for the benefit of the player's actual over-the-board opponents, is considered as a
+    # draw.
+
+    draw_points = score_point_system.score_dict[(ResultToken.HALF_POINT_BYE, ColorToken.BYE_OR_NOT_PAIRED)]
+    for section in sections:
+        if all(round_result.result == ResultToken.ZERO_POINT_BYE for round_result in section.results):
+            points_dict[section.starting_number] = draw_points * len(section.results)
+
+    # FIDE handbook: "1.7 Opposition Evaluation | 1.7.1 Sorting Methods | 1. Buchholz"
     # It is the sum of the (current) scores of the opponents the player met.
 
     for section in sections:
@@ -171,7 +181,7 @@ def get_player_infos_from_trf(trf: ParsedTrf) -> list[Player]:
     """Return a list of all player related information relevant for pairing."""
     players = []
     sections = trf.player_sections
-    buchholz_dict = _get_buchholz_dict(sections)
+    buchholz_dict = _get_buchholz_dict(sections, trf.x_section.scoring_point_system)
     sonneborn_berger_dict = _get_sonneborn_berger_dict(sections, trf.x_section.scoring_point_system)
 
     round_number = min(len(player.results) for player in sections)

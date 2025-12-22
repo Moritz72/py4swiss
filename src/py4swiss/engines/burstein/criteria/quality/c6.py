@@ -33,7 +33,7 @@ class C6(QualityCriterion[Player, State]):
         weight = DynamicUint(zero)
 
         # Only pairings of residents are considered.
-        if player_1.role != PlayerRole.RESIDENT or player_2.role == PlayerRole.RESIDENT:
+        if player_1.role != PlayerRole.RESIDENT or player_2.role != PlayerRole.RESIDENT:
             return weight
 
         # The weight contains all 0s except for two 1s accounting for the scores of the player involved in thus pair.

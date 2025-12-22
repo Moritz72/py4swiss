@@ -57,8 +57,12 @@ class Pairer:
         # 4.3 In order to sort all the possible pairings, apply the following rule: a pairing precedes another if its
         #     BSN #1's opponent has a larger BSN (i.e. lower ranking) than the other's. If BSN #1's opponents are the
         #     same, then compare BSN #2's opponents; and so on.
+        finalized = set()
 
         for i, resident in enumerate(self._resident_list):
+            if resident in finalized:
+                continue
+
             # Incentivize the resident being paired with other residents in order. Pairing with the lowest ranked
             # available player is incentivized the most, while pairing with the highest is incentivized the least. This
             # ensures that the player is paired with the highest ranked player out of all possible choices.
@@ -70,7 +74,7 @@ class Pairer:
             # Finalize the pairing of the players so that it does not get overwritten in the future. This ensures that
             # players with lower BSN take precedence.
             self._matcher.finalize_match(resident, match)
-            self._matcher.finalize_match(resident, match)
+            finalized |= {resident, match}
 
     def get_player_pairs(self) -> list[tuple[Player, Player]]:
         """
