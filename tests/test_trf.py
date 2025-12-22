@@ -232,6 +232,12 @@ def test_trf_parser(tmp_path: Path) -> None:
 
     assert set(trf_file.read_text().splitlines()) == set(tmp_file.read_text().splitlines())
 
+    trf_file = DATA_DIRECTORY / "comments.trf"
+    TrfParser.parse(trf_file)
+
+    trf_file = DATA_DIRECTORY / "invalid_code.trf"
+    TrfParser.parse(trf_file)
+
 
 def test_trf_parser_consistency_error() -> None:
     """Test whether the TRF parser throws consistency errors for TRFs with inconsistent contents."""
@@ -249,10 +255,18 @@ def test_trf_parser_consistency_error() -> None:
             TrfParser.parse(trf_file)
 
 
+def test_trf_parser_parsing_error() -> None:
+    """Test whether the TRF parser throws parsing errors for TRFs with malformed lines when strict mode is enabled."""
+    trf_file = DATA_DIRECTORY / "invalid_code.trf"
+
+    with pytest.raises(ParsingError):
+        TrfParser.parse(trf_file, strict=True)
+
+
 def test_trf_line_parsing_error() -> None:
     """Test whether a TRF line throws parsing errors for wrongly formatted lines."""
     with pytest.raises(ParsingError):
         TrfLine(0, "")
 
     with pytest.raises(ParsingError):
-        TrfLine(0, "101").get_code_type()
+        TrfLine(0, "101")
