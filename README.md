@@ -84,7 +84,7 @@ Pairing engine: `burstein`
 
 This variant is implements the [(Swiss) Burstein System](https://handbook.fide.com/chapter/C040402202602) (from 2026)
 rules by FIDE.
-Note, however, this implementation is not mature at this point in time.
+Note, however, that this implementation is not mature at this point in time.
 
 ## 🧪 Tests
 
